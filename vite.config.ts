@@ -17,14 +17,7 @@ export default defineConfig({
   resolve: { tsconfigPaths: true },
   plugins: [
     tailwindcss(),
-    tanstackStart({
-      spa: {
-        enabled: true,
-        prerender: {
-          crawlLinks: true,
-        },
-      },
-    }),
+    tanstackStart(),
     viteReact(),
   ],
 });
