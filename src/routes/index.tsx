@@ -36,8 +36,9 @@ function OverviewPage() {
         <Stat to="/sessions" label={t.kpiSessions} value={plural(locale, data.kpis.sessions, t.sessionForms)} hint={t.tipSessions} />
         <Stat to="/library" search={{ played: 1 }} label={t.kpiPlayed} value={String(data.kpis.played)} hint={t.tipPlayed} />
       </div>
-      <DfmChart tracks={data.tracks} />
-      <div className="mt-4 grid gap-3">
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <DfmChart tracks={data.tracks} />
         <Panel>
           <h2 className="text-sm font-medium text-muted">{t.topTracks}</h2>
           <p className="mt-2 mb-4 max-w-3xl text-sm text-muted">{t.playCountNote}</p>
@@ -45,21 +46,21 @@ function OverviewPage() {
             <p className="text-sm text-muted">{t.emptyChart}</p>
           ) : (
             <div className="max-h-[70vh] overflow-auto [scrollbar-gutter:stable]">
-              <table className="w-full min-w-[36rem] text-left text-sm">
+              <table className="w-full min-w-[20rem] text-left text-sm">
                 <thead className="sticky top-0 bg-elevated text-muted">
                   <tr>
                     <th className="py-2 pr-3 font-medium">{t.colTitle}</th>
-                    <th className="w-28 py-2 pr-6 text-right font-medium">{t.colPlays}</th>
-                    <th className="w-32 py-2 pr-4 text-right font-medium">{t.vdjCount}</th>
+                    <th className="w-20 py-2 pr-4 text-right font-medium">{t.colPlays}</th>
+                    <th className="w-24 py-2 pr-2 text-right font-medium">{t.vdjCount}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.topTracks.map((row) => (
                     <tr key={row.id}>
                       <td className="border-t border-line py-2 pr-3">{row.label}</td>
-                      <td className="border-t border-line py-2 pr-6 text-right tabular-nums">{row.total}</td>
+                      <td className="border-t border-line py-2 pr-4 text-right tabular-nums">{row.total}</td>
                       <td
-                        className={`border-t border-line py-2 pr-4 text-right tabular-nums ${row.vdj != null && row.vdj !== row.total ? "text-warn" : "text-muted"}`}
+                        className={`border-t border-line py-2 pr-2 text-right tabular-nums ${row.vdj != null && row.vdj !== row.total ? "text-warn" : "text-muted"}`}
                       >
                         {row.vdj ?? "—"}
                       </td>
@@ -70,32 +71,33 @@ function OverviewPage() {
             </div>
           )}
         </Panel>
-        {widgets.recent ? (
-          <Panel>
-            <h2 className="mb-4 text-sm font-medium text-muted">{t.recentSessions}</h2>
-            <ul className={data.sessions.length > 10 ? "max-h-[22.5rem] space-y-2 overflow-y-auto pr-1" : "space-y-2"}>
-              {data.sessions.map((session) => (
-                <li key={session.id}>
-                  <Link
-                    to="/sessions/$id"
-                    params={{ id: session.id }}
-                    className="flex min-h-11 items-center justify-between gap-3 rounded-sm px-2 hover:bg-subtle"
-                  >
-                    <span>
-                      <span className="block text-sm">{formatStamp(session.startedAt ?? session.sessionDate, locale)}</span>
-                      <span className="text-xs text-muted">
-                        {session.trackCount} · {formatSpan(session.spanMinutes, locale)}
-                        {session.avgBpm != null ? ` · ${formatBpm(session.avgBpm)}` : ""}
-                      </span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-3 text-xs text-faint">{t.spanNote}</p>
-          </Panel>
-        ) : null}
       </div>
+
+      {widgets.recent ? (
+        <Panel className="mt-4">
+          <h2 className="mb-4 text-sm font-medium text-muted">{t.recentSessions}</h2>
+          <ul className={data.sessions.length > 10 ? "max-h-[22.5rem] space-y-2 overflow-y-auto pr-1" : "space-y-2"}>
+            {data.sessions.map((session) => (
+              <li key={session.id}>
+                <Link
+                  to="/sessions/$id"
+                  params={{ id: session.id }}
+                  className="flex min-h-11 items-center justify-between gap-3 rounded-sm px-2 hover:bg-subtle"
+                >
+                  <span>
+                    <span className="block text-sm">{formatStamp(session.startedAt ?? session.sessionDate, locale)}</span>
+                    <span className="text-xs text-muted">
+                      {session.trackCount} · {formatSpan(session.spanMinutes, locale)}
+                      {session.avgBpm != null ? ` · ${formatBpm(session.avgBpm)}` : ""}
+                    </span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-faint">{t.spanNote}</p>
+        </Panel>
+      ) : null}
     </div>
   );
 }
@@ -135,7 +137,7 @@ function DfmChart({ tracks }: { tracks: { title: string }[] }) {
   }, [tracks]);
 
   return (
-    <Panel className="mt-4">
+    <Panel>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-sm font-medium text-muted">{t.dfmTitle}</h2>
         <a
