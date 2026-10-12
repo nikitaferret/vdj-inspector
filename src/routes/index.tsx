@@ -46,7 +46,7 @@ function OverviewPage() {
             <p className="text-sm text-muted">{t.emptyChart}</p>
           ) : (
             <div className="max-h-[70vh] overflow-auto [scrollbar-gutter:stable]">
-              <table className="w-full min-w-[20rem] text-left text-sm">
+              <table className="w-full table-fixed text-left text-sm">
                 <thead className="sticky top-0 bg-elevated text-muted">
                   <tr>
                     <th className="py-2 pr-3 font-medium">{t.colTitle}</th>
@@ -57,10 +57,14 @@ function OverviewPage() {
                 <tbody>
                   {data.topTracks.map((row) => (
                     <tr key={row.id}>
-                      <td className="border-t border-line py-2 pr-3">{row.label}</td>
-                      <td className="border-t border-line py-2 pr-4 text-right tabular-nums">{row.total}</td>
+                      <td className="border-t border-line py-2 pr-3 align-top">
+                        <div className="line-clamp-2 break-words" title={row.label}>
+                          {row.label}
+                        </div>
+                      </td>
+                      <td className="border-t border-line py-2 pr-4 text-right tabular-nums align-top">{row.total}</td>
                       <td
-                        className={`border-t border-line py-2 pr-2 text-right tabular-nums ${row.vdj != null && row.vdj !== row.total ? "text-warn" : "text-muted"}`}
+                        className={`border-t border-line py-2 pr-2 text-right tabular-nums align-top ${row.vdj != null && row.vdj !== row.total ? "text-warn" : "text-muted"}`}
                       >
                         {row.vdj ?? "—"}
                       </td>
@@ -155,20 +159,23 @@ function DfmChart({ tracks }: { tracks: { title: string }[] }) {
       {songs && songs.length === 0 && !offline ? <p className="text-sm text-muted">{t.dfmEmpty}</p> : null}
       {songs && songs.length > 0 ? (
         <div className={songs.length > 10 ? "max-h-[22.5rem] overflow-auto pr-1 [scrollbar-gutter:stable]" : undefined}>
-          <table className="w-full text-left text-sm">
+          <table className="w-full table-fixed text-left text-sm">
             <tbody>
               {songs.map((song, index) => {
                 const known = titleInLibrary(song.title, titles);
+                const fullTitle = song.artist ? `${song.artist} — ${song.title}` : song.title;
                 return (
                   <tr key={`${song.artist}-${song.title}-${index}`}>
-                    <td className="w-8 border-t border-line py-2 pr-2 tabular-nums text-faint">{index + 1}</td>
-                    <td className="border-t border-line py-2 pr-3">
-                      <span className="text-muted">{song.artist}</span>
-                      {song.artist ? " — " : ""}
-                      {song.title}
+                    <td className="w-8 border-t border-line py-2 pr-2 tabular-nums text-faint align-top">{index + 1}</td>
+                    <td className="border-t border-line py-2 pr-3 align-top">
+                      <div className="line-clamp-2 break-words" title={fullTitle}>
+                        <span className="text-muted">{song.artist}</span>
+                        {song.artist ? " — " : ""}
+                        {song.title}
+                      </div>
                     </td>
-                    <td className="w-16 border-t border-line py-2 pr-3 text-right tabular-nums">{song.plays}</td>
-                    <td className={`w-28 border-t border-line py-2 text-right ${known ? "text-good" : "text-faint"}`}>
+                    <td className="w-16 border-t border-line py-2 pr-3 text-right tabular-nums align-top">{song.plays}</td>
+                    <td className={`w-28 border-t border-line py-2 text-right align-top ${known ? "text-good" : "text-faint"}`}>
                       {known ? t.dfmIn : t.dfmOut}
                     </td>
                   </tr>
