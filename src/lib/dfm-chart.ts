@@ -1,5 +1,3 @@
-import { createServerFn } from "@tanstack/react-start";
-
 export type ChartSong = {
   artist: string;
   title: string;
@@ -35,10 +33,11 @@ export function parseDfmChart(html: string): ChartSong[] {
   return songs.slice(0, 100);
 }
 
-export const getDfmChart = createServerFn({ method: "GET" }).handler(async (): Promise<{ songs: ChartSong[]; offline: boolean }> => {
+/** Client-side fetch. May fail on CORS; callers treat that as offline. */
+export async function getDfmChart(): Promise<{ songs: ChartSong[]; offline: boolean }> {
   try {
     const response = await fetch(SOURCE, {
-      headers: { accept: "text/html", "user-agent": "VDJInspector" },
+      headers: { accept: "text/html" },
       signal: AbortSignal.timeout(12000),
     });
     if (!response.ok) return { songs: [], offline: true };
@@ -46,4 +45,4 @@ export const getDfmChart = createServerFn({ method: "GET" }).handler(async (): P
   } catch {
     return { songs: [], offline: true };
   }
-});
+}
