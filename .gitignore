@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.node/
+.node-unpack/
+node.zip
+vdj-inspector.log
+.project_id
+.github_repo
+.env
+.env.*

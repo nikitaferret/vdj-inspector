@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Outfit", "Avenir Next", "Segoe UI", sans-serif;
+  --font-sans: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Segoe UI Mono", monospace;
+
+  --color-bg: #0c0e11;
+  --color-elevated: #14181d;
+  --color-subtle: #1c2229;
+  --color-fg: #e8edf1;
+  --color-muted: #93a0ab;
+  --color-faint: #84929d;
+  --color-line: #2c353e;
+  --color-accent: #e4ebf0;
+  --color-accent-fg: #101418;
+  --color-good: #76d76f;
+  --color-warn: #e8b577;
+  --color-bad: #e29183;
+  --color-rel-same: #76d76f;
+  --color-rel-adjacent: #e5c346;
+  --color-rel-relative: #e8b577;
+  --color-rel-mid: #d79e57;
+  --color-rel-jump: #e29183;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 12px;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  input[type="checkbox"] {
+    accent-color: var(--color-accent);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@layer components {
+  .app-main {
+    padding-bottom: 7rem;
+  }
+
+  .sheet-above-nav {
+    bottom: 4.75rem;
+  }
+
+  @media (min-width: 768px) {
+    .app-main {
+      padding-bottom: 3rem;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .app-main {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+  }
+
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .app-main {
+      padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+    }
+
+    .sheet-above-nav {
+      bottom: calc(4.75rem + env(safe-area-inset-bottom));
+    }
+
+    @media (min-width: 768px) {
+      .app-main {
+        padding-bottom: 3rem;
+      }
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  a,
+  [role="button"] {
+    transition: none;
+  }
+}
