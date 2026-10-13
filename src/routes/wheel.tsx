@@ -54,8 +54,8 @@ function WheelPage() {
   return (
     <div>
       <h1 className="mb-4 font-display text-2xl tracking-tight">{t.navWheel}</h1>
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,28rem)_1fr]">
-        <div className="rounded-lg border border-white/10 bg-elevated p-4">
+      <div className="flex flex-col items-start gap-4 lg:flex-row">
+        <div className="shrink-0 rounded-lg border border-white/10 bg-elevated p-4">
           <HarmonicWheel
             counts={data.keyCounts}
             selected={selected}
@@ -89,7 +89,7 @@ function WheelPage() {
             </Button>
           ) : null}
         </div>
-        <div>
+        <div className="min-w-0 flex-1">
           <Field value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.wheelSearch} />
           {anchor ? (
             <p className="mt-3 text-sm">
