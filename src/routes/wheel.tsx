@@ -63,10 +63,10 @@ function WheelPage() {
   }, [anchor, data.tracks, query, relations, selected, tunables.wheelMinPlays, tunables.wheelRequireKey]);
 
   return (
-    <div>
-      <h1 className="mb-4 font-display text-2xl tracking-tight">{t.navWheel}</h1>
-      <div className="flex flex-col items-start gap-4 lg:flex-row lg:items-stretch">
-        <div className="sticky top-16 shrink-0 self-start rounded-lg border border-white/10 bg-elevated p-4">
+    <div className="flex h-[calc(100dvh-3rem-1.5rem)] flex-col overflow-hidden md:h-[calc(100dvh-3rem-2rem)]">
+      <h1 className="mb-3 shrink-0 font-display text-2xl tracking-tight">{t.navWheel}</h1>
+      <div className="grid min-h-0 flex-1 items-stretch gap-4 lg:grid-cols-[auto_1fr]">
+        <div className="flex min-h-0 flex-col overflow-auto rounded-lg border border-white/10 bg-elevated p-4">
           <HarmonicWheel
             counts={data.keyCounts}
             selected={selected}
@@ -100,10 +100,10 @@ function WheelPage() {
             </Button>
           ) : null}
         </div>
-        <Panel className="min-w-0 flex-1 overflow-hidden">
-          <Field value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.wheelSearch} className="mb-3" />
+        <Panel className="flex min-h-0 min-w-0 flex-col overflow-hidden">
+          <Field value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.wheelSearch} className="mb-3 shrink-0" />
           {anchor ? (
-            <p className="mb-3 truncate text-sm">
+            <p className="mb-3 shrink-0 truncate text-sm">
               <span className="text-muted">{t.wheelNext}: </span>
               {anchor.artist ? <span className="text-muted">{anchor.artist} — </span> : null}
               {anchor.title}
@@ -114,7 +114,7 @@ function WheelPage() {
             </p>
           ) : null}
           {rows.length === 0 ? <p className="text-sm text-muted">{selected ? t.wheelEmpty : t.wheelHint}</p> : null}
-          <ScrollArea className="h-[min(70vh,36rem)]">
+          <ScrollArea className="min-h-0 flex-1">
             <ul className="space-y-0.5">
               {rows.slice(0, 80).map((track) => {
                 const rel = track.camelot ? relations.get(track.camelot) ?? null : null;
