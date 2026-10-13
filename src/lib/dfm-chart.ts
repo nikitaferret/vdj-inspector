@@ -9,15 +9,18 @@ export type ChartSong = {
 const SOURCE = "https://radiotut.com/radio/dfmru/top_songs/";
 
 function decode(value: string): string {
+  const named: Record<string, string> = {
+    amp: "&",
+    quot: '"',
+    apos: "'",
+    lt: "<",
+    gt: ">",
+    nbsp: " ",
+  };
   return value
     .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)))
     .replace(/&#x([0-9a-f]+);/gi, (_, code: string) => String.fromCodePoint(parseInt(code, 16)))
-    .replace(/&/g, "&")
-    .replace(/"/g, '"')
-    .replace(/'/g, "'")
-    .replace(/&#0*39;/g, "'")
-    .replace(/</g, "<")
-    .replace(/>/g, ">")
+    .replace(/&([a-z]+);/gi, (match, name: string) => named[name.toLowerCase()] ?? match)
     .replace(/\s+/g, " ")
     .trim();
 }
