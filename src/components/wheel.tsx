@@ -37,7 +37,7 @@ export function HarmonicWheel({ counts, selected, anchor, keySystem, preferFlats
   const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
 
   return (
-    <svg viewBox="0 0 100 100" className="mx-auto w-full max-w-md" role="group">
+    <svg viewBox="0 0 100 100" className="mx-auto h-[28rem] w-[28rem] shrink-0" role="group">
       {Array.from({ length: 12 }, (_, index) => {
         const n = index + 1;
         const angle = centerAngle(n, anchor);
