@@ -1,31 +1,32 @@
 @import "tailwindcss";
 
 @theme {
-  --font-display: "Outfit", "Avenir Next", "Segoe UI", sans-serif;
-  --font-sans: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-display: "Noto Sans", "Outfit", "Avenir Next", "Segoe UI", sans-serif;
+  --font-sans: "Noto Sans", "IBM Plex Sans", "Segoe UI", sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", "Segoe UI Mono", monospace;
 
-  --color-bg: #0c0e11;
-  --color-elevated: #14181d;
-  --color-subtle: #1c2229;
-  --color-fg: #e8edf1;
-  --color-muted: #93a0ab;
-  --color-faint: #84929d;
-  --color-line: #2c353e;
-  --color-accent: #e4ebf0;
-  --color-accent-fg: #101418;
-  --color-good: #76d76f;
-  --color-warn: #e8b577;
-  --color-bad: #e29183;
-  --color-rel-same: #76d76f;
+  /* Hakuna Audio-inspired palette */
+  --color-bg: #080a0c;
+  --color-elevated: #0d1013;
+  --color-subtle: #13171b;
+  --color-fg: #f3f4f4;
+  --color-muted: #a1a8ad;
+  --color-faint: #7a8288;
+  --color-line: rgba(255, 255, 255, 0.09);
+  --color-accent: #e8e6e1;
+  --color-accent-fg: #0b0c0d;
+  --color-good: #7dcea0;
+  --color-warn: #e8c07a;
+  --color-bad: #e08a7a;
+  --color-rel-same: #7dcea0;
   --color-rel-adjacent: #e5c346;
-  --color-rel-relative: #e8b577;
+  --color-rel-relative: #e8c07a;
   --color-rel-mid: #d79e57;
-  --color-rel-jump: #e29183;
+  --color-rel-jump: #e08a7a;
 
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 12px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
 }
 
 @layer base {
@@ -48,7 +49,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 1px solid rgba(255, 255, 255, 0.4);
     outline-offset: 2px;
   }
 
@@ -60,6 +61,7 @@
   h2,
   h3 {
     text-wrap: balance;
+    letter-spacing: -0.02em;
   }
 
   p {
