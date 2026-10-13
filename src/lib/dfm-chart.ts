@@ -11,6 +11,7 @@ const SOURCE = "https://radiotut.com/radio/dfmru/top_songs/";
 function decode(value: string): string {
   return value
     .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code: string) => String.fromCodePoint(parseInt(code, 16)))
     .replace(/&/g, "&")
     .replace(/"/g, '"')
     .replace(/'/g, "'")
