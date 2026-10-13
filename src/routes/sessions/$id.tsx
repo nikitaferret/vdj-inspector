@@ -3,7 +3,7 @@ import { formatBpm, formatSpan, formatStamp, downloadText } from "@/lib/format";
 import { relationLabel, useI18n } from "@/lib/i18n";
 import { relationBetween } from "@/lib/vdj/keys";
 import { useDerived, useSettings } from "@/lib/store";
-import { Button, PageIntro, RelationText } from "@/components/ui";
+import { Button, RelationText } from "@/components/ui";
 
 export const Route = createFileRoute("/sessions/$id")({
   component: SessionDetailPage,
@@ -20,7 +20,8 @@ function SessionDetailPage() {
   if (!session) {
     return (
       <div>
-        <PageIntro title={t.navSessions} lead={t.missingSession} />
+        <h1 className="mb-4 font-display text-2xl tracking-tight">{t.navSessions}</h1>
+        <p className="mb-3 text-sm text-muted">{t.missingSession}</p>
         <Link to="/sessions" className="text-sm underline-offset-4 hover:underline">
           {t.back}
         </Link>
@@ -40,70 +41,47 @@ function SessionDetailPage() {
 
   return (
     <div>
-      <Link to="/sessions" className="mb-3 inline-flex min-h-11 items-center text-sm text-muted underline-offset-4 hover:underline">
+      <Link to="/sessions" className="mb-3 inline-flex min-h-9 items-center text-sm text-muted underline-offset-4 hover:underline">
         {t.back}
       </Link>
-      <PageIntro
-        title={formatStamp(session.startedAt ?? session.sessionDate, locale)}
-        lead={`${session.trackCount} · ${session.artistCount} ${t.sessionArtists} · ${session.matched} ${t.sessionMatched} · ${formatSpan(session.spanMinutes, locale)}${session.avgBpm != null ? ` · ${formatBpm(session.avgBpm)}` : ""}`}
-      />
-      <Button onClick={exportText}>{t.exportTxt}</Button>
-      <section className="mt-4 rounded-lg bg-elevated p-4 text-sm text-muted">
-        <h2 className="text-sm font-medium text-fg">{t.relHelpTitle}</h2>
-        <p className="mt-2" title={t.relHelpAdjacent}>
-          <RelationText rel="adjacent">{t.relAdjacent}.</RelationText> {t.relHelpAdjacent}
-        </p>
-        <p className="mt-2" title={t.relHelpRelative}>
-          <RelationText rel="relative">{t.relRelative}.</RelationText> {t.relHelpRelative}
-        </p>
-        <p className="mt-2">
-          <RelationText rel="same">{t.relSame}.</RelationText> {t.relHelpSame}
-        </p>
-        <p className="mt-2" title={t.relHelpJump}>
-          <RelationText rel="jump">{t.relJump}.</RelationText> {t.relHelpJump}
-        </p>
-      </section>
-      <ol className="mt-4 space-y-2">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl tracking-tight">{formatStamp(session.startedAt ?? session.sessionDate, locale)}</h1>
+          <p className="mt-1 text-xs text-muted">
+            {session.trackCount} · {session.artistCount} {t.sessionArtists} · {session.matched} {t.sessionMatched} · {formatSpan(session.spanMinutes, locale)}
+            {session.avgBpm != null ? ` · ${formatBpm(session.avgBpm)}` : ""}
+          </p>
+        </div>
+        <Button size="sm" variant="outline" onClick={exportText}>
+          {t.exportTxt}
+        </Button>
+      </div>
+      <ol className="space-y-1">
         {plays.map((play, index) => {
           const prev = index === 0 ? null : plays[index - 1].camelot;
           const rel = relationBetween(prev, play.camelot, compat);
           return (
-            <li key={play.id} className="rounded-lg bg-elevated p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-xs tabular-nums text-faint">{play.playedAt.slice(11, 16)}</p>
-                  <p className="truncate font-medium">{play.title}</p>
-                  <p className="truncate text-sm text-muted">{play.artist || "—"}</p>
-                </div>
-                <div className="text-right text-sm">
-                  <p>{play.trackId ? play.keyLabel : t.notInLibrary}</p>
-                  <p className="tabular-nums text-muted">{formatBpm(play.bpm)}</p>
-                  {index > 0 ? (
-                    <p className="mt-1">
-                      <RelationText
-                        rel={rel}
-                        title={
-                          rel === "adjacent"
-                            ? t.relHelpAdjacent
-                            : rel === "relative"
-                              ? t.relHelpRelative
-                              : rel === "jump"
-                                ? t.relHelpJump
-                                : undefined
-                        }
-                      >
-                        {relationLabel(t, rel)}
-                      </RelationText>
-                    </p>
-                  ) : null}
-                </div>
+            <li key={play.id} className="flex items-center justify-between gap-3 rounded-md bg-elevated px-3 py-2">
+              <div className="min-w-0">
+                <p className="text-xs tabular-nums text-faint">{play.playedAt.slice(11, 16)}</p>
+                <p className="truncate text-sm">
+                  {play.artist ? <span className="text-muted">{play.artist} — </span> : null}
+                  {play.title}
+                </p>
               </div>
-              {play.genreLabel ? <p className="mt-2 text-xs text-faint">{play.genreLabel}</p> : null}
+              <div className="shrink-0 text-right text-xs">
+                <p>{play.trackId ? play.keyLabel : t.notInLibrary}</p>
+                <p className="tabular-nums text-muted">{formatBpm(play.bpm)}</p>
+                {index > 0 ? (
+                  <p className="mt-0.5">
+                    <RelationText rel={rel}>{relationLabel(t, rel)}</RelationText>
+                  </p>
+                ) : null}
+              </div>
             </li>
           );
         })}
       </ol>
-      <p className="mt-4 text-xs text-faint">{t.spanNote}</p>
     </div>
   );
 }
