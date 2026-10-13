@@ -100,7 +100,7 @@ function WheelPage() {
             </Button>
           ) : null}
         </div>
-        <Panel className="min-w-0 flex-1">
+        <Panel className="min-w-0 flex-1 overflow-hidden">
           <Field value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.wheelSearch} className="mb-3" />
           {anchor ? (
             <p className="mb-3 truncate text-sm">
@@ -119,19 +119,20 @@ function WheelPage() {
               {rows.slice(0, 80).map((track) => {
                 const rel = track.camelot ? relations.get(track.camelot) ?? null : null;
                 const inCrate = crateIds.includes(track.id);
+                const label = track.artist ? `${track.artist} — ${track.title}` : track.title;
                 return (
-                  <li key={track.id}>
-                    <div className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-subtle">
+                  <li key={track.id} className="min-w-0">
+                    <div className="flex min-w-0 items-center gap-3 rounded-md px-2 py-1.5 hover:bg-subtle">
                       <button
                         type="button"
-                        className="min-w-0 flex-1 text-left"
+                        className="min-w-0 flex-1 overflow-hidden text-left"
                         onClick={() => {
                           if (!track.camelot) return;
                           setSelected(track.camelot);
                           setAnchorId(track.id);
                         }}
                       >
-                        <span className="block truncate text-sm">
+                        <span className="block truncate text-sm" title={label}>
                           {track.artist ? <span className="text-muted">{track.artist} — </span> : null}
                           {track.title}
                         </span>
