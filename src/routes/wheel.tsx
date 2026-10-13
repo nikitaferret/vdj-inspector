@@ -5,7 +5,7 @@ import { HarmonicWheel } from "@/components/wheel";
 import { Button, Field, Panel, RelationText, cn } from "@/components/ui";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatBpm } from "@/lib/format";
-import { relationLabel, useI18n } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n";
 import { compatibleKeys } from "@/lib/vdj/keys";
 import { useDerived, useSettings } from "@/lib/store";
 
@@ -142,9 +142,6 @@ function WheelPage() {
                           {track.genreLabel ? ` · ${track.genreLabel}` : ""}
                         </span>
                       </button>
-                      {rel ? (
-                        <RelationText rel={rel}>{relationLabel(t, rel)}</RelationText>
-                      ) : null}
                       <button
                         type="button"
                         aria-label={inCrate ? t.inCrate : t.addCrate}
