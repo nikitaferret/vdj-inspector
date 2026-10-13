@@ -14,7 +14,7 @@ function SessionsPage() {
 
   return (
     <div>
-      <PageIntro title={t.navSessions} lead={t.sessionsLead} />
+      <h1 className="mb-4 font-display text-2xl tracking-tight">{t.navSessions}</h1>
       {data.sessions.length === 0 ? <p className="text-sm text-muted">{t.emptyChart}</p> : null}
       <ul className="grid gap-3">
         {data.sessions.map((session) => (
