@@ -13,8 +13,8 @@
   --color-muted: #a1a8ad;
   --color-faint: #7a8288;
   --color-line: #1e2226;
-  --color-accent: #e8e6e1;
-  --color-accent-fg: #0b0c0d;
+  --color-accent: #c8f500;
+  --color-accent-fg: #0b0f00;
   --color-good: #7dcea0;
   --color-warn: #e8c07a;
   --color-bad: #e08a7a;
@@ -49,12 +49,12 @@
   }
 
   :focus-visible {
-    outline: 1px solid rgba(255, 255, 255, 0.4);
+    outline: 1px solid rgba(200, 245, 0, 0.55);
     outline-offset: 2px;
   }
 
   input[type="checkbox"] {
-    accent-color: var(--color-accent);
+    accent-color: #c8f500;
   }
 
   h1,
