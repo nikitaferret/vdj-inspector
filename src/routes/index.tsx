@@ -4,7 +4,7 @@ import { formatBpm, formatSpan, formatStamp, plural } from "@/lib/format";
 import { getDfmChart, type ChartSong } from "@/lib/dfm-chart";
 import { useI18n } from "@/lib/i18n";
 import { normalizeLabel } from "@/lib/vdj/derive";
-import { useDerived, useLibrary, useSettings } from "@/lib/store";
+import { useDerived, useSettings } from "@/lib/store";
 import { Panel } from "@/components/ui";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -35,7 +35,7 @@ function OverviewPage() {
           {data.topTracks.length === 0 ? (
             <p className="text-sm text-muted">{t.emptyChart}</p>
           ) : (
-            <ScrollArea className="h-[min(70vh,28rem)] pr-2">
+            <ScrollArea className="h-[min(70vh,28rem)]">
               <table className="w-full table-fixed text-left text-sm">
                 <thead className="sticky top-0 bg-elevated text-muted">
                   <tr>
@@ -76,7 +76,7 @@ function OverviewPage() {
       {widgets.recent ? (
         <Panel className="mt-4">
           <h2 className="mb-3 text-sm font-medium text-muted">{t.recentSessions}</h2>
-          <ScrollArea className={data.sessions.length > 8 ? "h-[18rem] pr-2" : undefined}>
+          <ScrollArea className={data.sessions.length > 8 ? "h-[18rem]" : undefined}>
             <ul className="space-y-1">
               {data.sessions.map((session) => (
                 <li key={session.id}>
@@ -137,7 +137,7 @@ function DfmChart({ tracks }: { tracks: { title: string }[] }) {
 
   return (
     <Panel>
-      <div className="mb-3 flex items-baseline justify-between gap-2 pr-2">
+      <div className="mb-3 flex items-baseline justify-between gap-2">
         <h2 className="text-sm font-medium text-muted">{t.dfmTitle}</h2>
         <a
           href="https://radiotut.com/radio/dfmru/top_songs/"
@@ -152,7 +152,7 @@ function DfmChart({ tracks }: { tracks: { title: string }[] }) {
       {offline ? <p className="text-sm text-muted">{t.dfmOffline}</p> : null}
       {songs && songs.length === 0 && !offline ? <p className="text-sm text-muted">{t.dfmEmpty}</p> : null}
       {songs && songs.length > 0 ? (
-        <ScrollArea className={songs.length > 10 ? "h-[22.5rem] pr-1" : undefined}>
+        <ScrollArea className={songs.length > 10 ? "h-[22.5rem]" : undefined}>
           <table className="w-full table-fixed text-left text-sm">
             <tbody>
               {songs.map((song, index) => {
@@ -168,7 +168,7 @@ function DfmChart({ tracks }: { tracks: { title: string }[] }) {
                       </div>
                     </td>
                     <td className="w-10 border-t border-line py-1.5 pr-2 text-right tabular-nums align-middle">{song.plays}</td>
-                    <td className={`w-12 border-t border-line py-1.5 pr-1 text-right align-middle ${known ? "text-good" : "text-faint"}`}>
+                    <td className={`w-12 border-t border-line py-1.5 text-right align-middle ${known ? "text-good" : "text-faint"}`}>
                       {known ? t.dfmIn : t.dfmOut}
                     </td>
                   </tr>
