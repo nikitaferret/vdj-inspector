@@ -6,6 +6,7 @@ import { useI18n } from "@/lib/i18n";
 import { normalizeLabel } from "@/lib/vdj/derive";
 import { profileLabel, useDerived, useLibrary, useSettings } from "@/lib/store";
 import { Panel } from "@/components/ui";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export const Route = createFileRoute("/")({
   component: OverviewPage,
@@ -43,7 +44,7 @@ function OverviewPage() {
           {data.topTracks.length === 0 ? (
             <p className="text-sm text-muted">{t.emptyChart}</p>
           ) : (
-            <div className="max-h-[70vh] overflow-auto [scrollbar-gutter:stable]">
+            <ScrollArea className="h-[min(70vh,28rem)]">
               <table className="w-full table-fixed text-left text-sm">
                 <thead className="sticky top-0 bg-elevated text-muted">
                   <tr>
@@ -68,7 +69,7 @@ function OverviewPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ScrollArea>
           )}
         </Panel>
       </div>
@@ -76,23 +77,25 @@ function OverviewPage() {
       {widgets.recent ? (
         <Panel className="mt-4">
           <h2 className="mb-3 text-sm font-medium text-muted">{t.recentSessions}</h2>
-          <ul className={data.sessions.length > 8 ? "max-h-[18rem] space-y-1 overflow-y-auto pr-1" : "space-y-1"}>
-            {data.sessions.map((session) => (
-              <li key={session.id}>
-                <Link
-                  to="/sessions/$id"
-                  params={{ id: session.id }}
-                  className="flex min-h-10 items-center justify-between gap-3 rounded-md px-2 hover:bg-subtle"
-                >
-                  <span className="text-sm">{formatStamp(session.startedAt ?? session.sessionDate, locale)}</span>
-                  <span className="text-xs text-muted tabular-nums">
-                    {session.trackCount} · {formatSpan(session.spanMinutes, locale)}
-                    {session.avgBpm != null ? ` · ${formatBpm(session.avgBpm)}` : ""}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <ScrollArea className={data.sessions.length > 8 ? "h-[18rem]" : undefined}>
+            <ul className="space-y-1">
+              {data.sessions.map((session) => (
+                <li key={session.id}>
+                  <Link
+                    to="/sessions/$id"
+                    params={{ id: session.id }}
+                    className="flex min-h-10 items-center justify-between gap-3 rounded-md px-2 hover:bg-subtle"
+                  >
+                    <span className="text-sm">{formatStamp(session.startedAt ?? session.sessionDate, locale)}</span>
+                    <span className="text-xs text-muted tabular-nums">
+                      {session.trackCount} · {formatSpan(session.spanMinutes, locale)}
+                      {session.avgBpm != null ? ` · ${formatBpm(session.avgBpm)}` : ""}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </ScrollArea>
         </Panel>
       ) : null}
     </div>
@@ -150,7 +153,7 @@ function DfmChart({ tracks }: { tracks: { title: string }[] }) {
       {offline ? <p className="text-sm text-muted">{t.dfmOffline}</p> : null}
       {songs && songs.length === 0 && !offline ? <p className="text-sm text-muted">{t.dfmEmpty}</p> : null}
       {songs && songs.length > 0 ? (
-        <div className={songs.length > 10 ? "max-h-[22.5rem] overflow-auto pr-1 [scrollbar-gutter:stable]" : undefined}>
+        <ScrollArea className={songs.length > 10 ? "h-[22.5rem]" : undefined}>
           <table className="w-full table-fixed text-left text-sm">
             <tbody>
               {songs.map((song, index) => {
@@ -174,7 +177,7 @@ function DfmChart({ tracks }: { tracks: { title: string }[] }) {
               })}
             </tbody>
           </table>
-        </div>
+        </ScrollArea>
       ) : null}
     </Panel>
   );
