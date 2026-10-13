@@ -5,7 +5,7 @@ import { getDfmChart, type ChartSong } from "@/lib/dfm-chart";
 import { useI18n } from "@/lib/i18n";
 import { normalizeLabel } from "@/lib/vdj/derive";
 import { profileLabel, useDerived, useLibrary, useSettings } from "@/lib/store";
-import { PageIntro, Panel } from "@/components/ui";
+import { Panel } from "@/components/ui";
 
 export const Route = createFileRoute("/")({
   component: OverviewPage,
@@ -22,26 +22,24 @@ function OverviewPage() {
 
   return (
     <div>
-      <PageIntro title={t.navOverview} lead={t.overviewLead} />
-      <p className="mb-5 max-w-3xl rounded-lg bg-elevated px-4 py-3 text-sm text-muted">
-        {origin === "demo" ? t.demoBanner : t.userBanner}{" "}
-        <Link to="/settings" className="text-fg underline-offset-4 hover:underline">
-          {t.changeRules}
-        </Link>
-        <span className="text-faint"> · {rules}</span>
-      </p>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h1 className="font-display text-2xl tracking-tight">{t.navOverview}</h1>
+        <span className="text-xs text-muted">
+          {origin === "demo" ? t.demoData : t.yourData} · {rules}
+        </span>
+      </div>
+
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat to="/library" label={t.kpiTracks} value={plural(locale, data.kpis.tracks, t.trackForms)} hint={t.tipTracks} />
-        <Stat to="/history" label={t.kpiPlays} value={plural(locale, data.kpis.plays, t.playForms)} hint={t.tipPlays} />
-        <Stat to="/sessions" label={t.kpiSessions} value={plural(locale, data.kpis.sessions, t.sessionForms)} hint={t.tipSessions} />
-        <Stat to="/library" search={{ played: 1 }} label={t.kpiPlayed} value={String(data.kpis.played)} hint={t.tipPlayed} />
+        <Stat to="/library" label={t.kpiTracks} value={plural(locale, data.kpis.tracks, t.trackForms)} />
+        <Stat to="/history" label={t.kpiPlays} value={plural(locale, data.kpis.plays, t.playForms)} />
+        <Stat to="/sessions" label={t.kpiSessions} value={plural(locale, data.kpis.sessions, t.sessionForms)} />
+        <Stat to="/library" search={{ played: 1 }} label={t.kpiPlayed} value={String(data.kpis.played)} />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <DfmChart tracks={data.tracks} />
         <Panel>
-          <h2 className="text-sm font-medium text-muted">{t.topTracks}</h2>
-          <p className="mt-2 mb-4 max-w-3xl text-sm text-muted">{t.playCountNote}</p>
+          <h2 className="mb-3 text-sm font-medium text-muted">{t.topTracks}</h2>
           {data.topTracks.length === 0 ? (
             <p className="text-sm text-muted">{t.emptyChart}</p>
           ) : (
@@ -50,21 +48,19 @@ function OverviewPage() {
                 <thead className="sticky top-0 bg-elevated text-muted">
                   <tr>
                     <th className="py-2 pr-3 font-medium">{t.colTitle}</th>
-                    <th className="w-20 py-2 pr-4 text-right font-medium">{t.colPlays}</th>
-                    <th className="w-24 py-2 pr-2 text-right font-medium">{t.vdjCount}</th>
+                    <th className="w-16 py-2 pr-2 text-right font-medium">{t.colPlays}</th>
+                    <th className="w-16 py-2 text-right font-medium">VDJ</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.topTracks.map((row) => (
                     <tr key={row.id}>
-                      <td className="border-t border-line py-2 pr-3 align-top">
-                        <div className="line-clamp-2 break-words" title={row.label}>
-                          {row.label}
-                        </div>
+                      <td className="border-t border-line py-1.5 pr-3 align-middle">
+                        <div className="truncate">{row.label}</div>
                       </td>
-                      <td className="border-t border-line py-2 pr-4 text-right tabular-nums align-top">{row.total}</td>
+                      <td className="border-t border-line py-1.5 pr-2 text-right tabular-nums align-middle">{row.total}</td>
                       <td
-                        className={`border-t border-line py-2 pr-2 text-right tabular-nums align-top ${row.vdj != null && row.vdj !== row.total ? "text-warn" : "text-muted"}`}
+                        className={`border-t border-line py-1.5 text-right tabular-nums align-middle ${row.vdj != null && row.vdj !== row.total ? "text-warn" : "text-muted"}`}
                       >
                         {row.vdj ?? "—"}
                       </td>
@@ -79,27 +75,24 @@ function OverviewPage() {
 
       {widgets.recent ? (
         <Panel className="mt-4">
-          <h2 className="mb-4 text-sm font-medium text-muted">{t.recentSessions}</h2>
-          <ul className={data.sessions.length > 10 ? "max-h-[22.5rem] space-y-2 overflow-y-auto pr-1" : "space-y-2"}>
+          <h2 className="mb-3 text-sm font-medium text-muted">{t.recentSessions}</h2>
+          <ul className={data.sessions.length > 8 ? "max-h-[18rem] space-y-1 overflow-y-auto pr-1" : "space-y-1"}>
             {data.sessions.map((session) => (
               <li key={session.id}>
                 <Link
                   to="/sessions/$id"
                   params={{ id: session.id }}
-                  className="flex min-h-11 items-center justify-between gap-3 rounded-sm px-2 hover:bg-subtle"
+                  className="flex min-h-10 items-center justify-between gap-3 rounded-md px-2 hover:bg-subtle"
                 >
-                  <span>
-                    <span className="block text-sm">{formatStamp(session.startedAt ?? session.sessionDate, locale)}</span>
-                    <span className="text-xs text-muted">
-                      {session.trackCount} · {formatSpan(session.spanMinutes, locale)}
-                      {session.avgBpm != null ? ` · ${formatBpm(session.avgBpm)}` : ""}
-                    </span>
+                  <span className="text-sm">{formatStamp(session.startedAt ?? session.sessionDate, locale)}</span>
+                  <span className="text-xs text-muted tabular-nums">
+                    {session.trackCount} · {formatSpan(session.spanMinutes, locale)}
+                    {session.avgBpm != null ? ` · ${formatBpm(session.avgBpm)}` : ""}
                   </span>
                 </Link>
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-xs text-faint">{t.spanNote}</p>
         </Panel>
       ) : null}
     </div>
@@ -142,18 +135,17 @@ function DfmChart({ tracks }: { tracks: { title: string }[] }) {
 
   return (
     <Panel>
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
+      <div className="mb-3 flex items-baseline justify-between gap-2">
         <h2 className="text-sm font-medium text-muted">{t.dfmTitle}</h2>
         <a
           href="https://radiotut.com/radio/dfmru/top_songs/"
-          className="text-sm text-muted underline-offset-4 hover:underline"
+          className="text-xs text-muted hover:underline"
           target="_blank"
           rel="noreferrer"
         >
           radiotut.com
         </a>
       </div>
-      <p className="mt-2 mb-4 max-w-3xl text-sm text-muted">{t.dfmNote}</p>
       {songs === null && !offline ? <p className="text-sm text-muted">{t.dfmLoading}</p> : null}
       {offline ? <p className="text-sm text-muted">{t.dfmOffline}</p> : null}
       {songs && songs.length === 0 && !offline ? <p className="text-sm text-muted">{t.dfmEmpty}</p> : null}
@@ -163,19 +155,18 @@ function DfmChart({ tracks }: { tracks: { title: string }[] }) {
             <tbody>
               {songs.map((song, index) => {
                 const known = titleInLibrary(song.title, titles);
-                const fullTitle = song.artist ? `${song.artist} — ${song.title}` : song.title;
                 return (
                   <tr key={`${song.artist}-${song.title}-${index}`}>
-                    <td className="w-8 border-t border-line py-2 pr-2 tabular-nums text-faint align-top">{index + 1}</td>
-                    <td className="border-t border-line py-2 pr-3 align-top">
-                      <div className="line-clamp-2 break-words" title={fullTitle}>
+                    <td className="w-6 border-t border-line py-1.5 pr-1 tabular-nums text-faint align-middle">{index + 1}</td>
+                    <td className="border-t border-line py-1.5 pr-2 align-middle">
+                      <div className="truncate">
                         <span className="text-muted">{song.artist}</span>
                         {song.artist ? " — " : ""}
                         {song.title}
                       </div>
                     </td>
-                    <td className="w-16 border-t border-line py-2 pr-3 text-right tabular-nums align-top">{song.plays}</td>
-                    <td className={`w-28 border-t border-line py-2 text-right align-top ${known ? "text-good" : "text-faint"}`}>
+                    <td className="w-12 border-t border-line py-1.5 pr-1 text-right tabular-nums align-middle">{song.plays}</td>
+                    <td className={`w-16 border-t border-line py-1.5 text-right align-middle ${known ? "text-good" : "text-faint"}`}>
                       {known ? t.dfmIn : t.dfmOut}
                     </td>
                   </tr>
@@ -206,23 +197,20 @@ function Stat({
   search,
   label,
   value,
-  hint,
 }: {
   to: "/library" | "/history" | "/sessions";
   search?: { played: 1 };
   label: string;
   value: string;
-  hint: string;
 }) {
   return (
     <Link
       to={to}
       search={search}
-      title={hint}
-      className="rounded-lg bg-elevated p-4 transition-colors duration-150 hover:bg-subtle"
+      className="rounded-lg border border-white/10 bg-elevated p-3 transition-colors hover:bg-subtle"
     >
-      <p className="text-sm text-muted">{label}</p>
-      <p className="mt-2 font-display text-[clamp(1.35rem,2vw,1.75rem)] tabular-nums tracking-tight">{value}</p>
+      <p className="text-xs text-muted">{label}</p>
+      <p className="mt-1 font-display text-xl tabular-nums tracking-tight">{value}</p>
     </Link>
   );
 }
