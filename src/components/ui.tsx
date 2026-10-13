@@ -1,4 +1,6 @@
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { Slot } from "@radix-ui/react-slot";
 import { clsx } from "clsx";
 
 export function cn(...parts: Array<string | false | null | undefined>): string {
@@ -6,7 +8,11 @@ export function cn(...parts: Array<string | false | null | undefined>): string {
 }
 
 export function Panel({ children, className }: { children: ReactNode; className?: string }) {
-  return <section className={cn("rounded-lg bg-elevated p-4", className)}>{children}</section>;
+  return (
+    <section className={cn("rounded-lg border border-white/10 bg-elevated p-4 shadow-sm", className)}>
+      {children}
+    </section>
+  );
 }
 
 export function PageIntro({ title, lead }: { title: string; lead: string }) {
@@ -18,28 +24,47 @@ export function PageIntro({ title, lead }: { title: string; lead: string }) {
   );
 }
 
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "ghost" };
+const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c8f500]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  {
+    variants: {
+      variant: {
+        default: "bg-[#c8f500] text-[#0b0f00] hover:bg-[#c8f500]/90",
+        primary: "bg-[#c8f500] text-[#0b0f00] hover:bg-[#c8f500]/90",
+        outline: "border border-white/15 bg-transparent hover:bg-white/5 hover:border-white/30",
+        secondary: "bg-subtle text-fg hover:bg-subtle/80",
+        ghost: "hover:bg-white/5 hover:text-fg",
+        link: "text-[#c8f500] underline-offset-4 hover:underline",
+        destructive: "bg-bad text-white hover:bg-bad/90",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  },
+);
 
-export function Button({ variant = "ghost", className, type = "button", ...props }: ButtonProps) {
-  return (
-    <button
-      type={type}
-      className={cn(
-        "inline-flex h-11 items-center justify-center gap-2 rounded-[7px] px-4 text-sm font-semibold tracking-wide",
-        "transition-[background-color,border-color,color,transform,filter] duration-[120ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
-        "active:scale-[0.97] active:brightness-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100",
-        variant === "primary"
-          ? "bg-[#c8f500] text-[#0b0f00] hover:brightness-105 hover:shadow-[0_0_0_1px_rgba(200,245,0,0.4)]"
-          : "border border-white/10 bg-elevated text-fg hover:border-white/25 hover:bg-subtle",
-        className,
-      )}
-      {...props}
-    />
-  );
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
+  VariantProps<typeof buttonVariants> & {
+    asChild?: boolean;
+  };
+
+export function Button({ className, variant, size, asChild = false, type = "button", ...props }: ButtonProps) {
+  const Comp = asChild ? Slot : "button";
+  return <Comp type={asChild ? undefined : type} className={cn(buttonVariants({ variant, size, className }))} {...props} />;
 }
 
+export { buttonVariants };
+
 const fieldClass =
-  "h-11 w-full rounded-[7px] border border-white/10 bg-subtle px-3 text-sm text-fg placeholder:text-faint focus:border-[#c8f500]/60 focus:outline-none";
+  "flex h-10 w-full rounded-md border border-white/15 bg-subtle px-3 py-2 text-sm text-fg placeholder:text-faint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c8f500]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:cursor-not-allowed disabled:opacity-50";
 
 export function Field(props: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={cn(fieldClass, props.className)} />;
@@ -60,7 +85,7 @@ export function Toggle({
 }) {
   return (
     <label className="flex min-h-11 items-center gap-3 text-sm">
-      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="accent-[#c8f500]" />
+      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="size-4 rounded border-white/20 accent-[#c8f500]" />
       <span>{label}</span>
     </label>
   );
@@ -77,9 +102,9 @@ export function MeterList({ rows }: { rows: { id?: string; label: string; total:
             <span className="min-w-0 truncate">{row.label}</span>
             <span className="shrink-0 tabular-nums text-muted">{row.total}</span>
           </div>
-          <div className="h-2 rounded-sm bg-subtle">
+          <div className="h-2 rounded-full bg-subtle">
             <div
-              className="h-2 rounded-sm bg-[#c8f500]"
+              className="h-2 rounded-full bg-[#c8f500]"
               style={{ width: `${Math.max(6, Math.round((row.total / max) * 100))}%` }}
             />
           </div>
@@ -140,13 +165,13 @@ export function Pager({
   if (pages <= 1) return null;
   return (
     <div className="mt-4 flex items-center justify-between gap-3">
-      <Button disabled={page === 0} onClick={() => onPage(page - 1)}>
+      <Button variant="outline" size="sm" disabled={page === 0} onClick={() => onPage(page - 1)}>
         {prev}
       </Button>
       <p className="text-sm tabular-nums text-muted">
         {label} {page + 1} / {pages}
       </p>
-      <Button disabled={page >= pages - 1} onClick={() => onPage(page + 1)}>
+      <Button variant="outline" size="sm" disabled={page >= pages - 1} onClick={() => onPage(page + 1)}>
         {next}
       </Button>
     </div>
