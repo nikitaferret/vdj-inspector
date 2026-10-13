@@ -61,7 +61,7 @@ function HistoryPage() {
 
   return (
     <div>
-      <PageIntro title={t.navHistory} lead={t.historyLead} />
+      <h1 className="mb-4 font-display text-2xl tracking-tight">{t.navHistory}</h1>
       <p className="mb-4 text-sm text-muted">
         {rows.length} · {matched} {t.matchedOf}
       </p>
