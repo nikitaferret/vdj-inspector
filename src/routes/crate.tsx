@@ -51,7 +51,7 @@ function CratePage() {
 
   return (
     <div>
-      <PageIntro title={t.navCrate} lead={t.crateLead} />
+      <h1 className="mb-4 font-display text-2xl tracking-tight">{t.navCrate}</h1>
       <p className="mb-4 max-w-3xl text-sm text-muted">{t.crateExplain}</p>
       <form
         className="mb-4 flex flex-col gap-3 sm:flex-row"
