@@ -15,16 +15,20 @@ call :log Checking components.
 call :ensure_node
 if errorlevel 1 goto :fail
 
-if exist "%ROOT%\node_modules\vite\package.json" (
+set "VITE_OK=0"
+if exist "%ROOT%\node_modules\vite\package.json" if exist "%ROOT%\node_modules\vite\dist\node\cli.js" set "VITE_OK=1"
+
+if "%VITE_OK%"=="1" (
   echo Program files: ok
   call :log Program files: ok
 ) else (
-  echo Program files: missing. Downloading...
-  call :log Program files missing. Running npm install.
+  echo Program files: missing or incomplete. Reinstalling...
+  call :log Program files missing or broken. Running clean npm install.
+  if exist "%ROOT%\node_modules" rmdir /s /q "%ROOT%\node_modules"
   call npm install
   if errorlevel 1 goto :fail
-  if not exist "%ROOT%\node_modules\vite\package.json" (
-    call :log npm install finished, but vite is still missing.
+  if not exist "%ROOT%\node_modules\vite\dist\node\cli.js" (
+    call :log npm install finished, but vite CLI is still missing.
     goto :fail
   )
   echo Program files: ready
