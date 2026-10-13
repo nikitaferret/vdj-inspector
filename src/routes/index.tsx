@@ -9,6 +9,8 @@ import { loadDfmCache, saveDfmCache } from "@/lib/vdj/idb";
 import { Panel } from "@/components/ui";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
+const LIST_HEIGHT = "h-[min(70vh,28rem)]";
+
 export const Route = createFileRoute("/")({
   component: OverviewPage,
 });
@@ -29,14 +31,14 @@ function OverviewPage() {
         <Stat to="/library" search={{ played: 1 }} label={t.kpiPlayed} value={String(data.kpis.played)} />
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+      <div className="mt-4 grid items-stretch gap-4 lg:grid-cols-2">
         <DfmChart tracks={data.tracks} />
-        <Panel>
+        <Panel className="flex flex-col">
           <h2 className="mb-3 text-sm font-medium text-muted">{t.topTracks}</h2>
           {data.topTracks.length === 0 ? (
             <p className="text-sm text-muted">{t.emptyChart}</p>
           ) : (
-            <ScrollArea className="h-[min(70vh,28rem)]">
+            <ScrollArea className={`${LIST_HEIGHT} min-h-0 flex-1`}>
               <table className="w-full table-fixed text-left text-sm">
                 <thead className="sticky top-0 bg-elevated text-muted">
                   <tr>
@@ -144,7 +146,7 @@ function DfmChart({ tracks }: { tracks: { title: string }[] }) {
   }, [tracks]);
 
   return (
-    <Panel>
+    <Panel className="flex flex-col">
       <div className="mb-3 flex items-baseline justify-between gap-2">
         <h2 className="text-sm font-medium text-muted">{t.dfmTitle}</h2>
         <a
@@ -160,7 +162,7 @@ function DfmChart({ tracks }: { tracks: { title: string }[] }) {
       {offline && !songs ? <p className="text-sm text-muted">{t.dfmOffline}</p> : null}
       {songs && songs.length === 0 && !offline ? <p className="text-sm text-muted">{t.dfmEmpty}</p> : null}
       {songs && songs.length > 0 ? (
-        <ScrollArea className={songs.length > 10 ? "h-[22.5rem]" : undefined}>
+        <ScrollArea className={`${LIST_HEIGHT} min-h-0 flex-1`}>
           <table className="w-full table-fixed text-left text-sm">
             <tbody>
               {songs.map((song, index) => {
