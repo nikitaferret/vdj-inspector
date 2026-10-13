@@ -25,8 +25,12 @@ export function Button({ variant = "ghost", className, type = "button", ...props
     <button
       type={type}
       className={cn(
-        "inline-flex h-11 items-center justify-center gap-2 rounded-sm px-4 text-sm font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40",
-        variant === "primary" ? "bg-accent text-accent-fg" : "border border-line bg-elevated text-fg",
+        "inline-flex h-11 items-center justify-center gap-2 rounded-[7px] px-4 text-sm font-semibold tracking-wide",
+        "transition-[background-color,border-color,color,transform,filter] duration-[120ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
+        "active:scale-[0.97] active:brightness-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100",
+        variant === "primary"
+          ? "bg-[#c8f500] text-[#0b0f00] hover:brightness-105 hover:shadow-[0_0_0_1px_rgba(200,245,0,0.4)]"
+          : "border border-white/10 bg-elevated text-fg hover:border-white/25 hover:bg-subtle",
         className,
       )}
       {...props}
@@ -35,7 +39,7 @@ export function Button({ variant = "ghost", className, type = "button", ...props
 }
 
 const fieldClass =
-  "h-11 w-full rounded-sm border border-line bg-subtle px-3 text-sm text-fg placeholder:text-faint";
+  "h-11 w-full rounded-[7px] border border-white/10 bg-subtle px-3 text-sm text-fg placeholder:text-faint focus:border-[#c8f500]/60 focus:outline-none";
 
 export function Field(props: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={cn(fieldClass, props.className)} />;
@@ -56,7 +60,7 @@ export function Toggle({
 }) {
   return (
     <label className="flex min-h-11 items-center gap-3 text-sm">
-      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
+      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="accent-[#c8f500]" />
       <span>{label}</span>
     </label>
   );
@@ -75,7 +79,7 @@ export function MeterList({ rows }: { rows: { id?: string; label: string; total:
           </div>
           <div className="h-2 rounded-sm bg-subtle">
             <div
-              className="h-2 rounded-sm bg-accent"
+              className="h-2 rounded-sm bg-[#c8f500]"
               style={{ width: `${Math.max(6, Math.round((row.total / max) * 100))}%` }}
             />
           </div>
