@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { formatBpm, formatDuration, formatStamp, toCsv, downloadText } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 import { useDerived, useSettings } from "@/lib/store";
 import type { ViewTrack } from "@/lib/vdj/types";
-import { Button, Field, PageIntro, Pager, SelectField } from "@/components/ui";
+import { Button, Field, Pager, SelectField } from "@/components/ui";
 
 export const Route = createFileRoute("/library")({
   validateSearch: (search: Record<string, unknown>): { played?: 1 } =>
@@ -13,6 +13,29 @@ export const Route = createFileRoute("/library")({
 });
 
 type SortKey = "artist" | "title" | "genre" | "bpm" | "key" | "plays" | "last";
+
+function highlight(text: string, query: string): ReactNode {
+  const q = query.trim();
+  if (!q) return text;
+  const lower = text.toLowerCase();
+  const needle = q.toLowerCase();
+  const parts: ReactNode[] = [];
+  let from = 0;
+  let at = lower.indexOf(needle, from);
+  let key = 0;
+  while (at >= 0) {
+    if (at > from) parts.push(text.slice(from, at));
+    parts.push(
+      <mark key={key++} className="rounded-sm bg-[#c8f500]/30 text-fg">
+        {text.slice(at, at + needle.length)}
+      </mark>,
+    );
+    from = at + needle.length;
+    at = lower.indexOf(needle, from);
+  }
+  if (from < text.length) parts.push(text.slice(from));
+  return parts.length ? parts : text;
+}
 
 function LibraryPage() {
   const { t, locale } = useI18n();
@@ -148,30 +171,6 @@ function LibraryPage() {
         {t.results}: {visible.length === 0 ? 0 : safePage * pageSize + 1}–{safePage * pageSize + visible.length} / {rows.length}
       </p>
       {visible.length === 0 ? <p className="mt-6 text-sm text-muted">{t.noTracks}</p> : null}
-      <ul className="mt-3 hidden space-y-3">
-        {visible.map((track) => (
-          <li key={track.id} className="rounded-lg bg-elevated p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="truncate font-medium">{track.remix ? `${track.title} (${track.remix})` : track.title}</p>
-                <p className="truncate text-sm text-muted">{track.artist || "—"}</p>
-              </div>
-              <Button onClick={() => toggleCrate(track.id)}>{crateIds.includes(track.id) ? t.inCrate : t.addCrate}</Button>
-            </div>
-            <p className="mt-3 text-sm text-muted">
-              {[
-                columns.genre ? track.genreLabel : "",
-                columns.bpm ? formatBpm(track.bpm) : "",
-                columns.key ? (track.camelot ? track.keyLabel : track.musicalKey || "—") : "",
-                columns.duration ? formatDuration(track.durationSeconds) : "",
-                columns.plays ? String(track.playCount) : "",
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
-          </li>
-        ))}
-      </ul>
       <div className="mt-3 overflow-x-auto">
         <table className="w-full min-w-[720px] border-separate border-spacing-0 text-left text-sm">
           <thead className="sticky top-0 bg-bg">
@@ -194,14 +193,14 @@ function LibraryPage() {
           <tbody>
             {visible.map((track) => (
               <tr key={track.id} className="border-t border-line">
-                <td className="max-w-40 truncate border-t border-line px-2 py-3">{track.artist || "—"}</td>
+                <td className="max-w-40 truncate border-t border-line px-2 py-3">{highlight(track.artist || "—", query)}</td>
                 <td className="max-w-56 truncate border-t border-line px-2 py-3">
-                  {track.remix ? `${track.title} (${track.remix})` : track.title}
+                  {highlight(track.remix ? `${track.title} (${track.remix})` : track.title, query)}
                 </td>
-                {columns.genre ? <td className="border-t border-line px-2 py-3 text-muted">{track.genreLabel || "—"}</td> : null}
+                {columns.genre ? <td className="border-t border-line px-2 py-3 text-muted">{highlight(track.genreLabel || "—", query)}</td> : null}
                 {columns.bpm ? <td className="border-t border-line px-2 py-3 tabular-nums">{formatBpm(track.bpm)}</td> : null}
                 {columns.key ? (
-                  <td className="border-t border-line px-2 py-3">{track.camelot ? track.keyLabel : track.musicalKey || "—"}</td>
+                  <td className="border-t border-line px-2 py-3">{highlight(track.camelot ? track.keyLabel : track.musicalKey || "—", query)}</td>
                 ) : null}
                 {columns.duration ? (
                   <td className="border-t border-line px-2 py-3 tabular-nums">{formatDuration(track.durationSeconds)}</td>
@@ -217,7 +216,9 @@ function LibraryPage() {
                   </td>
                 ) : null}
                 <td className="border-t border-line px-2 py-3">
-                  <Button onClick={() => toggleCrate(track.id)}>{crateIds.includes(track.id) ? t.inCrate : t.addCrate}</Button>
+                  <Button size="sm" variant="outline" onClick={() => toggleCrate(track.id)}>
+                    {crateIds.includes(track.id) ? t.inCrate : t.addCrate}
+                  </Button>
                 </td>
               </tr>
             ))}
