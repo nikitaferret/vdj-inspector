@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { HarmonicWheel } from "@/components/wheel";
-import { Button, Field, Panel, RelationText } from "@/components/ui";
+import { Button, Field, Panel, RelationText, cn } from "@/components/ui";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatBpm } from "@/lib/format";
 import { relationLabel, useI18n } from "@/lib/i18n";
@@ -16,6 +16,15 @@ const REL_RANK: Record<string, number> = {
   diagonal: 4,
   jump: 5,
 };
+
+function relColor(rel: string | null | undefined): string {
+  if (rel === "same") return "text-rel-same";
+  if (rel === "adjacent") return "text-rel-adjacent";
+  if (rel === "relative") return "text-rel-relative";
+  if (rel === "two" || rel === "diagonal") return "text-rel-mid";
+  if (rel === "jump") return "text-rel-jump";
+  return "text-muted";
+}
 
 export const Route = createFileRoute("/wheel")({
   component: WheelPage,
@@ -106,45 +115,48 @@ function WheelPage() {
           {rows.length === 0 ? <p className="text-sm text-muted">{selected ? t.wheelEmpty : t.wheelHint}</p> : null}
           <ScrollArea className="h-[min(70vh,36rem)]">
             <ul className="space-y-1">
-              {rows.slice(0, 80).map((track) => (
-                <li key={track.id}>
-                  <button
-                    type="button"
-                    className="flex w-full items-center justify-between gap-3 rounded-md px-2 py-2 text-left hover:bg-subtle"
-                    onClick={() => {
-                      if (!track.camelot) return;
-                      setSelected(track.camelot);
-                      setAnchorId(track.id);
-                    }}
-                  >
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm">
-                        {track.artist ? <span className="text-muted">{track.artist} — </span> : null}
-                        {track.title}
-                      </span>
-                      <span className="block truncate text-xs text-muted">
-                        {formatBpm(track.bpm)} · {track.keyLabel}
-                        {track.genreLabel ? ` · ${track.genreLabel}` : ""}
-                      </span>
-                    </span>
-                    {track.camelot && relations.get(track.camelot) ? (
-                      <RelationText rel={relations.get(track.camelot) ?? null}>
-                        {relationLabel(t, relations.get(track.camelot) ?? null)}
-                      </RelationText>
-                    ) : null}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleCrate(track.id);
+              {rows.slice(0, 80).map((track) => {
+                const rel = track.camelot ? relations.get(track.camelot) ?? null : null;
+                return (
+                  <li key={track.id}>
+                    <button
+                      type="button"
+                      className="flex w-full items-center justify-between gap-3 rounded-md px-2 py-2 text-left hover:bg-subtle"
+                      onClick={() => {
+                        if (!track.camelot) return;
+                        setSelected(track.camelot);
+                        setAnchorId(track.id);
                       }}
                     >
-                      {crateIds.includes(track.id) ? t.inCrate : t.addCrate}
-                    </Button>
-                  </button>
-                </li>
-              ))}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm">
+                          {track.artist ? <span className="text-muted">{track.artist} — </span> : null}
+                          {track.title}
+                        </span>
+                        <span className="block truncate text-xs text-muted">
+                          {formatBpm(track.bpm)}
+                          {" · "}
+                          <span className={cn("font-medium", relColor(rel))}>{track.keyLabel}</span>
+                          {track.genreLabel ? ` · ${track.genreLabel}` : ""}
+                        </span>
+                      </span>
+                      {rel ? (
+                        <RelationText rel={rel}>{relationLabel(t, rel)}</RelationText>
+                      ) : null}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleCrate(track.id);
+                        }}
+                      >
+                        {crateIds.includes(track.id) ? t.inCrate : t.addCrate}
+                      </Button>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </ScrollArea>
         </Panel>
