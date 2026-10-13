@@ -100,7 +100,7 @@ function LibraryPage() {
 
   return (
     <div>
-      <PageIntro title={t.navLibrary} lead={t.libraryLead} />
+      <h1 className="mb-4 font-display text-2xl tracking-tight">{t.navLibrary}</h1>
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         <label className="md:col-span-2">
           <span className="mb-1 block text-sm text-muted">{t.search}</span>
