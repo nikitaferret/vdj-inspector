@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { compatibleKeys, formatKey, secondaryKey } from "@/lib/vdj/keys";
 import type { Compat, WheelAnchor } from "@/lib/vdj/types";
 
@@ -29,6 +30,17 @@ function centerAngle(n: number, anchor: WheelAnchor): number {
   return turn * Math.PI * 2 - Math.PI / 2;
 }
 
+function moveKey(code: string, dir: "left" | "right" | "up" | "down"): string {
+  const match = /^(\d+)([AB])$/.exec(code);
+  if (!match) return code;
+  let n = Number(match[1]);
+  let mode = match[2];
+  if (dir === "left") n = n === 1 ? 12 : n - 1;
+  if (dir === "right") n = n === 12 ? 1 : n + 1;
+  if (dir === "up" || dir === "down") mode = mode === "A" ? "B" : "A";
+  return `${n}${mode}`;
+}
+
 export function HarmonicWheel({ counts, selected, anchor, keySystem, preferFlats, compat, onSelect }: Props) {
   const tunables = { keySystem, preferFlats };
   const relationByCode = new Map(selected ? compatibleKeys(selected, compat).map((item) => [item.code, item.rel]) : []);
@@ -36,8 +48,36 @@ export function HarmonicWheel({ counts, selected, anchor, keySystem, preferFlats
   const half = Math.PI / 12 - gap;
   const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
 
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
+      if (!selected && (event.key === "ArrowLeft" || event.key === "ArrowRight" || event.key === "ArrowUp" || event.key === "ArrowDown")) {
+        event.preventDefault();
+        onSelect("1A");
+        return;
+      }
+      if (!selected) return;
+      const dir =
+        event.key === "ArrowLeft"
+          ? "left"
+          : event.key === "ArrowRight"
+            ? "right"
+            : event.key === "ArrowUp"
+              ? "up"
+              : event.key === "ArrowDown"
+                ? "down"
+                : null;
+      if (!dir) return;
+      event.preventDefault();
+      onSelect(moveKey(selected, dir));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selected, onSelect]);
+
   return (
-    <svg viewBox="0 0 100 100" className="mx-auto h-[28rem] w-[28rem] shrink-0" role="group">
+    <svg viewBox="0 0 100 100" className="mx-auto h-[28rem] w-[28rem] shrink-0" role="group" tabIndex={0}>
       {Array.from({ length: 12 }, (_, index) => {
         const n = index + 1;
         const angle = centerAngle(n, anchor);
