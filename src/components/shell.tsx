@@ -7,7 +7,7 @@ import { useI18n } from "@/lib/i18n";
 import { ingestFiles, collectDroppedFiles } from "@/lib/ingest";
 import { readSourceFolder, allowFolder, canPickFolder, pickSourceFolder } from "@/lib/source-folder";
 import { loadSnapshot, loadSourceFolder, saveSourceFolder } from "@/lib/vdj/idb";
-import { profileLabel, useLibrary, useSettings } from "@/lib/store";
+import { useLibrary, useSettings } from "@/lib/store";
 
 const LINKS = [
   { href: "/", key: "navOverview", icon: LayoutDashboard },
@@ -25,19 +25,15 @@ function isActive(path: string, href: string): boolean {
 }
 
 export function Shell({ children }: { children: ReactNode }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const path = useRouterState({ select: (state) => state.location.pathname });
-  const origin = useLibrary((state) => state.origin);
   const trackCount = useLibrary((state) => state.tracks.length);
-  const profileRef = useSettings((state) => state.profileRef);
-  const profiles = useSettings((state) => state.profiles);
   const [open, setOpen] = useState(false);
   const [more, setMore] = useState(false);
   const [busy, setBusy] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
-  const rules = profileLabel(profileRef, profiles, locale, t.customRules);
 
   const [offline, setOffline] = useState(false);
   const importNonce = useLibrary((state) => state.importNonce);
@@ -192,24 +188,20 @@ export function Shell({ children }: { children: ReactNode }) {
             </Link>
           ))}
         </nav>
-        <div className="mt-3 space-y-1 px-2 text-xs text-muted">
-          <p>{rules}</p>
-          <p className="text-fg">{trackCount}</p>
+        <div className="mt-3 px-2 text-xs text-muted">
+          <p className="text-fg tabular-nums">{trackCount}</p>
         </div>
       </aside>
 
       <div className="md:pl-52">
-        <header className="sticky top-0 z-30 flex h-12 items-center justify-between gap-3 border-b border-line bg-bg px-4">
-          <p className="truncate text-xs text-muted">{rules}</p>
-          <div className="flex shrink-0 items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => void refreshData()} disabled={busy}>
-              {refreshing ? t.refreshBusy : t.refreshData}
-            </Button>
-            <Button size="sm" onClick={() => setOpen(true)} disabled={busy}>
-              <Upload className="size-4" aria-hidden="true" />
-              {t.import}
-            </Button>
-          </div>
+        <header className="sticky top-0 z-30 flex h-12 items-center justify-end gap-2 border-b border-line bg-bg px-4">
+          <Button variant="outline" size="sm" onClick={() => void refreshData()} disabled={busy}>
+            {refreshing ? t.refreshBusy : t.refreshData}
+          </Button>
+          <Button size="sm" onClick={() => setOpen(true)} disabled={busy}>
+            <Upload className="size-4" aria-hidden="true" />
+            {t.import}
+          </Button>
         </header>
         <main className="app-main mx-auto w-full max-w-6xl px-4 pt-3 md:px-5 md:pt-4">
           {offline ? <div className="mb-3 rounded-md bg-elevated px-3 py-2 text-xs">{t.offlineBanner}</div> : null}
