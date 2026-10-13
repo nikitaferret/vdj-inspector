@@ -5,6 +5,7 @@ import { getDfmChart, type ChartSong } from "@/lib/dfm-chart";
 import { useI18n } from "@/lib/i18n";
 import { normalizeLabel } from "@/lib/vdj/derive";
 import { useDerived, useSettings } from "@/lib/store";
+import { loadDfmCache, saveDfmCache } from "@/lib/vdj/idb";
 import { Panel } from "@/components/ui";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -107,15 +108,22 @@ function DfmChart({ tracks }: { tracks: { title: string }[] }) {
   const [offline, setOffline] = useState(false);
 
   useEffect(() => {
+    let cancel = false;
+    void loadDfmCache().then((cached) => {
+      if (cancel || !cached) return;
+      setSongs(cached);
+    });
     if (typeof navigator !== "undefined" && navigator.onLine === false) {
       setOffline(true);
       return;
     }
-    let cancel = false;
     void getDfmChart()
       .then((result) => {
         if (cancel) return;
-        setSongs(result.songs);
+        if (result.songs.length) {
+          setSongs(result.songs);
+          void saveDfmCache(result.songs);
+        }
         setOffline(result.offline);
       })
       .catch(() => {
@@ -149,7 +157,7 @@ function DfmChart({ tracks }: { tracks: { title: string }[] }) {
         </a>
       </div>
       {songs === null && !offline ? <p className="text-sm text-muted">{t.dfmLoading}</p> : null}
-      {offline ? <p className="text-sm text-muted">{t.dfmOffline}</p> : null}
+      {offline && !songs ? <p className="text-sm text-muted">{t.dfmOffline}</p> : null}
       {songs && songs.length === 0 && !offline ? <p className="text-sm text-muted">{t.dfmEmpty}</p> : null}
       {songs && songs.length > 0 ? (
         <ScrollArea className={songs.length > 10 ? "h-[22.5rem]" : undefined}>
