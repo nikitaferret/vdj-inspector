@@ -4,7 +4,7 @@ import { formatBpm, formatSpan, formatStamp, plural } from "@/lib/format";
 import { getDfmChart, type ChartSong } from "@/lib/dfm-chart";
 import { useI18n } from "@/lib/i18n";
 import { normalizeLabel } from "@/lib/vdj/derive";
-import { profileLabel, useDerived, useLibrary, useSettings } from "@/lib/store";
+import { useDerived, useLibrary, useSettings } from "@/lib/store";
 import { Panel } from "@/components/ui";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -15,20 +15,11 @@ export const Route = createFileRoute("/")({
 function OverviewPage() {
   const { t, locale } = useI18n();
   const data = useDerived();
-  const origin = useLibrary((state) => state.origin);
   const widgets = useSettings((state) => state.widgets);
-  const profileRef = useSettings((state) => state.profileRef);
-  const profiles = useSettings((state) => state.profiles);
-  const rules = profileLabel(profileRef, profiles, locale, t.customRules);
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h1 className="font-display text-2xl tracking-tight">{t.navOverview}</h1>
-        <span className="text-xs text-muted">
-          {origin === "demo" ? t.demoData : t.yourData} · {rules}
-        </span>
-      </div>
+      <h1 className="mb-4 font-display text-2xl tracking-tight">{t.navOverview}</h1>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat to="/library" label={t.kpiTracks} value={plural(locale, data.kpis.tracks, t.trackForms)} />
@@ -44,29 +35,37 @@ function OverviewPage() {
           {data.topTracks.length === 0 ? (
             <p className="text-sm text-muted">{t.emptyChart}</p>
           ) : (
-            <ScrollArea className="h-[min(70vh,28rem)]">
+            <ScrollArea className="h-[min(70vh,28rem)] pr-2">
               <table className="w-full table-fixed text-left text-sm">
                 <thead className="sticky top-0 bg-elevated text-muted">
                   <tr>
                     <th className="py-2 pr-3 font-medium">{t.colTitle}</th>
                     <th className="w-16 py-2 pr-2 text-right font-medium">{t.colPlays}</th>
-                    <th className="w-16 py-2 text-right font-medium">VDJ</th>
+                    <th className="w-14 py-2 text-right font-medium">VDJ</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.topTracks.map((row) => (
-                    <tr key={row.id}>
-                      <td className="border-t border-line py-1.5 pr-3 align-middle">
-                        <div className="truncate">{row.label}</div>
-                      </td>
-                      <td className="border-t border-line py-1.5 pr-2 text-right tabular-nums align-middle">{row.total}</td>
-                      <td
-                        className={`border-t border-line py-1.5 text-right tabular-nums align-middle ${row.vdj != null && row.vdj !== row.total ? "text-warn" : "text-muted"}`}
-                      >
-                        {row.vdj ?? "—"}
-                      </td>
-                    </tr>
-                  ))}
+                  {data.topTracks.map((row) => {
+                    const parts = row.label.split(" — ");
+                    const artist = parts.length > 1 ? parts[0] : "";
+                    const title = parts.length > 1 ? parts.slice(1).join(" — ") : row.label;
+                    return (
+                      <tr key={row.id}>
+                        <td className="border-t border-line py-1.5 pr-3 align-middle">
+                          <div className="truncate">
+                            {artist ? <span className="text-muted">{artist} — </span> : null}
+                            {title}
+                          </div>
+                        </td>
+                        <td className="border-t border-line py-1.5 pr-2 text-right tabular-nums align-middle">{row.total}</td>
+                        <td
+                          className={`border-t border-line py-1.5 text-right tabular-nums align-middle ${row.vdj != null && row.vdj !== row.total ? "text-warn" : "text-muted"}`}
+                        >
+                          {row.vdj ?? "—"}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </ScrollArea>
@@ -77,7 +76,7 @@ function OverviewPage() {
       {widgets.recent ? (
         <Panel className="mt-4">
           <h2 className="mb-3 text-sm font-medium text-muted">{t.recentSessions}</h2>
-          <ScrollArea className={data.sessions.length > 8 ? "h-[18rem]" : undefined}>
+          <ScrollArea className={data.sessions.length > 8 ? "h-[18rem] pr-2" : undefined}>
             <ul className="space-y-1">
               {data.sessions.map((session) => (
                 <li key={session.id}>
@@ -138,7 +137,7 @@ function DfmChart({ tracks }: { tracks: { title: string }[] }) {
 
   return (
     <Panel>
-      <div className="mb-3 flex items-baseline justify-between gap-2">
+      <div className="mb-3 flex items-baseline justify-between gap-2 pr-2">
         <h2 className="text-sm font-medium text-muted">{t.dfmTitle}</h2>
         <a
           href="https://radiotut.com/radio/dfmru/top_songs/"
@@ -153,7 +152,7 @@ function DfmChart({ tracks }: { tracks: { title: string }[] }) {
       {offline ? <p className="text-sm text-muted">{t.dfmOffline}</p> : null}
       {songs && songs.length === 0 && !offline ? <p className="text-sm text-muted">{t.dfmEmpty}</p> : null}
       {songs && songs.length > 0 ? (
-        <ScrollArea className={songs.length > 10 ? "h-[22.5rem]" : undefined}>
+        <ScrollArea className={songs.length > 10 ? "h-[22.5rem] pr-1" : undefined}>
           <table className="w-full table-fixed text-left text-sm">
             <tbody>
               {songs.map((song, index) => {
@@ -168,8 +167,8 @@ function DfmChart({ tracks }: { tracks: { title: string }[] }) {
                         {song.title}
                       </div>
                     </td>
-                    <td className="w-12 border-t border-line py-1.5 pr-1 text-right tabular-nums align-middle">{song.plays}</td>
-                    <td className={`w-16 border-t border-line py-1.5 text-right align-middle ${known ? "text-good" : "text-faint"}`}>
+                    <td className="w-10 border-t border-line py-1.5 pr-2 text-right tabular-nums align-middle">{song.plays}</td>
+                    <td className={`w-12 border-t border-line py-1.5 pr-1 text-right align-middle ${known ? "text-good" : "text-faint"}`}>
                       {known ? t.dfmIn : t.dfmOut}
                     </td>
                   </tr>
