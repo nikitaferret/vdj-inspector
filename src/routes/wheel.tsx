@@ -115,13 +115,13 @@ function WheelPage() {
           ) : null}
           {rows.length === 0 ? <p className="text-sm text-muted">{selected ? t.wheelEmpty : t.wheelHint}</p> : null}
           <ScrollArea className="h-[min(70vh,36rem)]">
-            <ul className="space-y-1">
+            <ul className="space-y-0.5">
               {rows.slice(0, 80).map((track) => {
                 const rel = track.camelot ? relations.get(track.camelot) ?? null : null;
                 const inCrate = crateIds.includes(track.id);
                 return (
                   <li key={track.id}>
-                    <div className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-subtle">
+                    <div className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-subtle">
                       <button
                         type="button"
                         className="min-w-0 flex-1 text-left"
@@ -146,10 +146,10 @@ function WheelPage() {
                         type="button"
                         aria-label={inCrate ? t.inCrate : t.addCrate}
                         className={cn(
-                          "flex size-7 shrink-0 items-center justify-center rounded-full border transition-colors",
+                          "flex size-7 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
                           inCrate
                             ? "border-[#c8f500] bg-[#c8f500] text-[#0b0f00]"
-                            : "border-white/20 text-muted hover:border-white/40 hover:text-fg",
+                            : "border-[#c8f500]/70 text-[#c8f500] hover:border-[#c8f500] hover:bg-[#c8f500]/10",
                         )}
                         onClick={() => toggleCrate(track.id)}
                       >
