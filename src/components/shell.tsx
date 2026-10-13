@@ -10,13 +10,13 @@ import { loadSnapshot, loadSourceFolder, saveSourceFolder } from "@/lib/vdj/idb"
 import { profileLabel, useLibrary, useSettings } from "@/lib/store";
 
 const LINKS = [
-  { href: "/", key: "navOverview", tip: "navTipOverview", icon: LayoutDashboard },
-  { href: "/library", key: "navLibrary", tip: "navTipLibrary", icon: Library },
-  { href: "/history", key: "navHistory", tip: "navTipHistory", icon: History },
-  { href: "/sessions", key: "navSessions", tip: "navTipSessions", icon: ListMusic },
-  { href: "/wheel", key: "navWheel", tip: "navTipWheel", icon: Disc3 },
-  { href: "/crate", key: "navCrate", tip: "navTipCrate", icon: Music2 },
-  { href: "/settings", key: "navSettings", tip: "navTipSettings", icon: Settings2 },
+  { href: "/", key: "navOverview", icon: LayoutDashboard },
+  { href: "/library", key: "navLibrary", icon: Library },
+  { href: "/history", key: "navHistory", icon: History },
+  { href: "/sessions", key: "navSessions", icon: ListMusic },
+  { href: "/wheel", key: "navWheel", icon: Disc3 },
+  { href: "/crate", key: "navCrate", icon: Music2 },
+  { href: "/settings", key: "navSettings", icon: Settings2 },
 ] as const;
 
 function isActive(path: string, href: string): boolean {
@@ -168,30 +168,23 @@ export function Shell({ children }: { children: ReactNode }) {
     };
   }, [t]);
 
-  const mobile = [
-    LINKS[0],
-    LINKS[1],
-    LINKS[4],
-    LINKS[3],
-  ] as const;
+  const mobile = [LINKS[0], LINKS[1], LINKS[4], LINKS[3]] as const;
 
   return (
     <div className="min-h-dvh bg-bg text-fg">
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 flex-col border-r border-line bg-elevated px-3 py-5 md:flex">
-        <div className="px-3">
-          <p className="font-display text-2xl tracking-tight">{t.appName}</p>
-          <p className="text-sm text-muted">{t.tagline}</p>
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-52 flex-col border-r border-line bg-elevated px-2 py-4 md:flex">
+        <div className="px-2">
+          <p className="font-display text-lg tracking-tight">{t.appName}</p>
         </div>
-        <nav className="mt-6 flex flex-1 flex-col gap-1">
+        <nav className="mt-4 flex flex-1 flex-col gap-0.5">
           {LINKS.map((item) => (
             <Link
               key={item.href}
               to={item.href}
-              title={t[item.tip]}
               aria-current={isActive(path, item.href) ? "page" : undefined}
               className={cn(
-                "flex min-h-11 items-center gap-3 rounded-sm px-3 text-sm",
-                isActive(path, item.href) ? "bg-subtle text-fg" : "text-muted",
+                "flex min-h-9 items-center gap-2.5 rounded-md px-2 text-sm",
+                isActive(path, item.href) ? "bg-subtle text-fg" : "text-muted hover:bg-subtle/50",
               )}
             >
               <item.icon className="size-4 shrink-0" aria-hidden="true" />
@@ -199,38 +192,29 @@ export function Shell({ children }: { children: ReactNode }) {
             </Link>
           ))}
         </nav>
-        <div className="mt-4 space-y-3 px-3">
-          <p className="text-sm text-muted">
-            {t.rules}: {rules}
-          </p>
-          <p className="text-sm text-fg">
-            {origin === "demo" ? t.demoData : t.yourData} · {trackCount}
-          </p>
+        <div className="mt-3 space-y-1 px-2 text-xs text-muted">
+          <p>{rules}</p>
+          <p className="text-fg">{trackCount}</p>
         </div>
       </aside>
 
-      <div className="md:pl-60">
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-line bg-bg px-4">
-          <div className="min-w-0">
-            <p className="font-display text-lg leading-none md:hidden">{t.appName}</p>
-            <p className="truncate text-xs text-muted md:text-sm">{rules}</p>
-          </div>
+      <div className="md:pl-52">
+        <header className="sticky top-0 z-30 flex h-12 items-center justify-between gap-3 border-b border-line bg-bg px-4">
+          <p className="truncate text-xs text-muted">{rules}</p>
           <div className="flex shrink-0 items-center gap-2">
-            <Button onClick={() => void refreshData()} disabled={busy}>
+            <Button variant="outline" size="sm" onClick={() => void refreshData()} disabled={busy}>
               {refreshing ? t.refreshBusy : t.refreshData}
             </Button>
-            <Button variant="primary" onClick={() => setOpen(true)} disabled={busy}>
+            <Button size="sm" onClick={() => setOpen(true)} disabled={busy}>
               <Upload className="size-4" aria-hidden="true" />
               {t.import}
             </Button>
           </div>
         </header>
-        <main className="app-main mx-auto w-full max-w-6xl px-4 pt-4 md:px-6 md:pt-6">
-          {offline ? (
-            <div className="mb-4 rounded-lg bg-elevated px-4 py-3 text-sm">{t.offlineBanner}</div>
-          ) : null}
+        <main className="app-main mx-auto w-full max-w-6xl px-4 pt-3 md:px-5 md:pt-4">
+          {offline ? <div className="mb-3 rounded-md bg-elevated px-3 py-2 text-xs">{t.offlineBanner}</div> : null}
           {banner ? (
-            <div className="mb-4 flex items-start justify-between gap-3 rounded-lg bg-elevated px-4 py-3 text-sm">
+            <div className="mb-3 flex items-start justify-between gap-3 rounded-md bg-elevated px-3 py-2 text-xs">
               <p>{banner}</p>
               <button type="button" className="shrink-0 text-muted" onClick={() => setBanner(null)}>
                 {t.close}
@@ -250,24 +234,23 @@ export function Shell({ children }: { children: ReactNode }) {
               <Link
                 key={item.href}
                 to={item.href}
-                title={t[item.tip]}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex min-h-14 flex-col items-center justify-center gap-1 px-1 text-xs",
+                  "flex min-h-12 flex-col items-center justify-center gap-0.5 px-1 text-[10px]",
                   active ? "text-fg" : "text-muted",
                 )}
               >
-                <Icon className="size-5" aria-hidden="true" />
+                <Icon className="size-4" aria-hidden="true" />
                 {t[item.key]}
               </Link>
             );
           })}
           <button
             type="button"
-            className={cn("flex min-h-14 flex-col items-center justify-center gap-1 text-xs", more ? "text-fg" : "text-muted")}
+            className={cn("flex min-h-12 flex-col items-center justify-center gap-0.5 text-[10px]", more ? "text-fg" : "text-muted")}
             onClick={() => setMore((value) => !value)}
           >
-            <MoreHorizontal className="size-5" aria-hidden="true" />
+            <MoreHorizontal className="size-4" aria-hidden="true" />
             {t.more}
           </button>
         </div>
@@ -275,14 +258,14 @@ export function Shell({ children }: { children: ReactNode }) {
 
       {more ? (
         <div className="fixed inset-0 z-40 bg-bg/80 md:hidden" onClick={() => setMore(false)}>
-          <div className="sheet-above-nav absolute inset-x-3 rounded-lg border border-line bg-elevated p-3" onClick={(event) => event.stopPropagation()}>
-            <div className="grid gap-1">
+          <div className="sheet-above-nav absolute inset-x-3 rounded-lg border border-line bg-elevated p-2" onClick={(event) => event.stopPropagation()}>
+            <div className="grid gap-0.5">
               {[LINKS[2], LINKS[5], LINKS[6]].map((item) => (
                 <Link
                   key={item.href}
                   to={item.href}
                   onClick={() => setMore(false)}
-                  className="flex min-h-11 items-center rounded-sm px-3 text-sm"
+                  className="flex min-h-10 items-center rounded-md px-3 text-sm"
                 >
                   {t[item.key]}
                 </Link>
@@ -292,12 +275,7 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
       ) : null}
 
-      {dragging ? (
-        <div
-          className="pointer-events-none fixed inset-0 z-40 border-2 border-dashed border-accent bg-bg/70"
-          style={{ pointerEvents: "none" }}
-        />
-      ) : null}
+      {dragging ? <div className="pointer-events-none fixed inset-0 z-40 border-2 border-dashed border-[#c8f500] bg-bg/70" /> : null}
 
       {open ? <ImportDialog t={t} busy={busy} onClose={() => setOpen(false)} onFiles={(files) => void takeFiles(files)} /> : null}
     </div>
