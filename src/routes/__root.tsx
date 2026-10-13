@@ -9,7 +9,7 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "VDJ Inspector" },
-      { name: "theme-color", content: "#0c0e11" },
+      { name: "theme-color", content: "#080a0c" },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
@@ -17,7 +17,7 @@ export const Route = createRootRoute({
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Outfit:wght@500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap",
       },
       { rel: "stylesheet", href: appCss },
     ],
