@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { Plus, Check } from "lucide-react";
 import { HarmonicWheel } from "@/components/wheel";
 import { Button, Field, Panel, RelationText, cn } from "@/components/ui";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -117,18 +118,19 @@ function WheelPage() {
             <ul className="space-y-1">
               {rows.slice(0, 80).map((track) => {
                 const rel = track.camelot ? relations.get(track.camelot) ?? null : null;
+                const inCrate = crateIds.includes(track.id);
                 return (
                   <li key={track.id}>
-                    <button
-                      type="button"
-                      className="flex w-full items-center justify-between gap-3 rounded-md px-2 py-2 text-left hover:bg-subtle"
-                      onClick={() => {
-                        if (!track.camelot) return;
-                        setSelected(track.camelot);
-                        setAnchorId(track.id);
-                      }}
-                    >
-                      <span className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-subtle">
+                      <button
+                        type="button"
+                        className="min-w-0 flex-1 text-left"
+                        onClick={() => {
+                          if (!track.camelot) return;
+                          setSelected(track.camelot);
+                          setAnchorId(track.id);
+                        }}
+                      >
                         <span className="block truncate text-sm">
                           {track.artist ? <span className="text-muted">{track.artist} — </span> : null}
                           {track.title}
@@ -139,21 +141,24 @@ function WheelPage() {
                           <span className={cn("font-medium", relColor(rel))}>{track.keyLabel}</span>
                           {track.genreLabel ? ` · ${track.genreLabel}` : ""}
                         </span>
-                      </span>
+                      </button>
                       {rel ? (
                         <RelationText rel={rel}>{relationLabel(t, rel)}</RelationText>
                       ) : null}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleCrate(track.id);
-                        }}
+                      <button
+                        type="button"
+                        aria-label={inCrate ? t.inCrate : t.addCrate}
+                        className={cn(
+                          "flex size-7 shrink-0 items-center justify-center rounded-full border transition-colors",
+                          inCrate
+                            ? "border-[#c8f500] bg-[#c8f500] text-[#0b0f00]"
+                            : "border-white/20 text-muted hover:border-white/40 hover:text-fg",
+                        )}
+                        onClick={() => toggleCrate(track.id)}
                       >
-                        {crateIds.includes(track.id) ? t.inCrate : t.addCrate}
-                      </Button>
-                    </button>
+                        {inCrate ? <Check className="size-3.5" /> : <Plus className="size-3.5" />}
+                      </button>
+                    </div>
                   </li>
                 );
               })}
