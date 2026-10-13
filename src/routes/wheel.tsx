@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { HarmonicWheel } from "@/components/wheel";
-import { Button, Field, RelationText } from "@/components/ui";
+import { Button, Field, Panel, RelationText } from "@/components/ui";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatBpm } from "@/lib/format";
 import { relationLabel, useI18n } from "@/lib/i18n";
 import { compatibleKeys } from "@/lib/vdj/keys";
@@ -54,8 +55,8 @@ function WheelPage() {
   return (
     <div>
       <h1 className="mb-4 font-display text-2xl tracking-tight">{t.navWheel}</h1>
-      <div className="flex flex-col items-start gap-4 lg:flex-row">
-        <div className="shrink-0 rounded-lg border border-white/10 bg-elevated p-4">
+      <div className="flex flex-col items-start gap-4 lg:flex-row lg:items-stretch">
+        <div className="sticky top-16 shrink-0 self-start rounded-lg border border-white/10 bg-elevated p-4">
           <HarmonicWheel
             counts={data.keyCounts}
             selected={selected}
@@ -68,7 +69,7 @@ function WheelPage() {
               setSelected((current) => (current === code ? current : code));
             }}
           />
-          <div className="mt-3 flex flex-wrap gap-x-3 gap-y-2 text-xs">
+          <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1.5 text-xs">
             <RelationText rel="same">{t.relSame}</RelationText>
             <RelationText rel="adjacent">{t.relAdjacent}</RelationText>
             <RelationText rel="relative">{t.relRelative}</RelationText>
@@ -89,53 +90,64 @@ function WheelPage() {
             </Button>
           ) : null}
         </div>
-        <div className="min-w-0 flex-1">
-          <Field value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.wheelSearch} />
+        <Panel className="min-w-0 flex-1">
+          <Field value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.wheelSearch} className="mb-3" />
           {anchor ? (
-            <p className="mt-3 text-sm">
+            <p className="mb-3 truncate text-sm">
               <span className="text-muted">{t.wheelNext}: </span>
-              {anchor.artist ? `${anchor.artist} — ` : ""}
+              {anchor.artist ? <span className="text-muted">{anchor.artist} — </span> : null}
               {anchor.title}
               <span className="text-muted">
-                {" "}
-                · {formatBpm(anchor.bpm)} · {anchor.keyLabel}
+                {" "}· {formatBpm(anchor.bpm)} · {anchor.keyLabel}
                 {anchor.genreLabel ? ` · ${anchor.genreLabel}` : ""}
               </span>
             </p>
           ) : null}
-          {rows.length === 0 ? <p className="mt-4 text-sm text-muted">{selected ? t.wheelEmpty : t.wheelHint}</p> : null}
-          <ul className="mt-3 space-y-2">
-            {rows.slice(0, 80).map((track) => (
-              <li key={track.id} className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-elevated p-3">
-                <button
-                  type="button"
-                  className="min-w-0 flex-1 text-left"
-                  onClick={() => {
-                    if (!track.camelot) return;
-                    setSelected(track.camelot);
-                    setAnchorId(track.id);
-                  }}
-                >
-                  <p className="truncate font-medium">{track.title}</p>
-                  <p className="truncate text-sm text-muted">
-                    {track.artist || "—"} · {formatBpm(track.bpm)} · {track.keyLabel}
-                    {track.genreLabel ? ` · ${track.genreLabel}` : ""}
-                  </p>
-                  {track.camelot && relations.get(track.camelot) ? (
-                    <p className="mt-1">
+          {rows.length === 0 ? <p className="text-sm text-muted">{selected ? t.wheelEmpty : t.wheelHint}</p> : null}
+          <ScrollArea className="h-[min(70vh,36rem)]">
+            <ul className="space-y-1">
+              {rows.slice(0, 80).map((track) => (
+                <li key={track.id}>
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between gap-3 rounded-md px-2 py-2 text-left hover:bg-subtle"
+                    onClick={() => {
+                      if (!track.camelot) return;
+                      setSelected(track.camelot);
+                      setAnchorId(track.id);
+                    }}
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm">
+                        {track.artist ? <span className="text-muted">{track.artist} — </span> : null}
+                        {track.title}
+                      </span>
+                      <span className="block truncate text-xs text-muted">
+                        {formatBpm(track.bpm)} · {track.keyLabel}
+                        {track.genreLabel ? ` · ${track.genreLabel}` : ""}
+                      </span>
+                    </span>
+                    {track.camelot && relations.get(track.camelot) ? (
                       <RelationText rel={relations.get(track.camelot) ?? null}>
                         {relationLabel(t, relations.get(track.camelot) ?? null)}
                       </RelationText>
-                    </p>
-                  ) : null}
-                </button>
-                <Button size="sm" variant="outline" onClick={() => toggleCrate(track.id)}>
-                  {crateIds.includes(track.id) ? t.inCrate : t.addCrate}
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </div>
+                    ) : null}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleCrate(track.id);
+                      }}
+                    >
+                      {crateIds.includes(track.id) ? t.inCrate : t.addCrate}
+                    </Button>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </ScrollArea>
+        </Panel>
       </div>
     </div>
   );
