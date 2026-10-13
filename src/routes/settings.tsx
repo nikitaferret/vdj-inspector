@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Button, Field, PageIntro, Panel, Toggle } from "@/components/ui";
+import { Button, Field, Panel, SelectField, Toggle } from "@/components/ui";
 import { useI18n } from "@/lib/i18n";
 import { displayGenre, parseGenreMap } from "@/lib/vdj/derive";
 import { useLibrary, useSettings } from "@/lib/store";
@@ -51,37 +51,42 @@ function SettingsPage() {
 
   return (
     <div>
-      <PageIntro title={t.navSettings} lead={t.settingsLead} />
-      <p className="mb-4 text-sm text-muted">{t.offlineHint}</p>
-      {note ? <p className="mb-4 rounded-lg bg-elevated px-4 py-3 text-sm">{note}</p> : null}
+      <h1 className="mb-4 font-display text-2xl tracking-tight">{t.navSettings}</h1>
+      {note ? <p className="mb-3 rounded-md bg-elevated px-3 py-2 text-xs">{note}</p> : null}
       <div className="grid gap-3">
         <Panel>
-          <h2 className="text-sm font-medium text-muted">{t.language}</h2>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button variant={locale === "ru" ? "primary" : "ghost"} onClick={() => setLocale("ru")}>
+          <h2 className="mb-2 text-sm font-medium text-muted">{t.language}</h2>
+          <div className="flex gap-2">
+            <Button size="sm" variant={locale === "ru" ? "default" : "outline"} onClick={() => setLocale("ru")}>
               Русский
             </Button>
-            <Button variant={locale === "en" ? "primary" : "ghost"} onClick={() => setLocale("en")}>
+            <Button size="sm" variant={locale === "en" ? "default" : "outline"} onClick={() => setLocale("en")}>
               English
             </Button>
           </div>
         </Panel>
 
         <Panel>
-          <h2 className="text-sm font-medium text-muted">{t.sectionHarmony}</h2>
-          <fieldset className="mt-2">
-            <legend className="text-sm">{t.keySystem}</legend>
-            <Choice name="key" checked={tunables.keySystem === "camelot"} label={t.camelot} onChange={() => patchTunables({ keySystem: "camelot" })} />
-            <Choice name="key" checked={tunables.keySystem === "open"} label={t.openKey} onChange={() => patchTunables({ keySystem: "open" })} />
-            <Choice name="key" checked={tunables.keySystem === "traditional"} label={t.traditional} onChange={() => patchTunables({ keySystem: "traditional" })} />
+          <h2 className="mb-3 text-sm font-medium text-muted">{t.sectionHarmony}</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label>
+              <span className="mb-1 block text-xs text-muted">{t.keySystem}</span>
+              <SelectField value={tunables.keySystem} onChange={(e) => patchTunables({ keySystem: e.target.value as Tunables["keySystem"] })}>
+                <option value="camelot">{t.camelot}</option>
+                <option value="open">{t.openKey}</option>
+                <option value="traditional">{t.traditional}</option>
+              </SelectField>
+            </label>
+            <label>
+              <span className="mb-1 block text-xs text-muted">{t.anchor}</span>
+              <SelectField value={tunables.wheelAnchor} onChange={(e) => patchTunables({ wheelAnchor: e.target.value as Tunables["wheelAnchor"] })}>
+                <option value="clock">{t.anchorClock}</option>
+                <option value="one">{t.anchorOne}</option>
+              </SelectField>
+            </label>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-1 text-xs sm:grid-cols-3">
             <Toggle checked={tunables.preferFlats} onChange={(preferFlats) => patchTunables({ preferFlats })} label={t.preferFlats} />
-          </fieldset>
-          <fieldset className="mt-2">
-            <legend className="text-sm">{t.anchor}</legend>
-            <Choice name="anchor" checked={tunables.wheelAnchor === "clock"} label={t.anchorClock} onChange={() => patchTunables({ wheelAnchor: "clock" })} />
-            <Choice name="anchor" checked={tunables.wheelAnchor === "one"} label={t.anchorOne} onChange={() => patchTunables({ wheelAnchor: "one" })} />
-          </fieldset>
-          <div className="mt-2">
             <Toggle checked={tunables.compat.same} onChange={(same) => patchTunables({ compat: { ...tunables.compat, same } })} label={t.sameKey} />
             <Toggle checked={tunables.compat.adjacent} onChange={(adjacent) => patchTunables({ compat: { ...tunables.compat, adjacent } })} label={t.adjacentKey} />
             <Toggle checked={tunables.compat.relative} onChange={(relative) => patchTunables({ compat: { ...tunables.compat, relative } })} label={t.relativeKey} />
@@ -91,138 +96,113 @@ function SettingsPage() {
         </Panel>
 
         <Panel>
-          <h2 className="text-sm font-medium text-muted">{t.sectionBpm}</h2>
-          <p className="mt-2 text-sm text-muted">{t.bpmHelp}</p>
-          <Choice name="bpm" checked={tunables.bpmMode === "auto"} label={t.bpmAuto} onChange={() => patchTunables({ bpmMode: "auto" })} />
-          <Choice name="bpm" checked={tunables.bpmMode === "period"} label={t.bpmPeriod} onChange={() => patchTunables({ bpmMode: "period" })} />
-          <Choice name="bpm" checked={tunables.bpmMode === "direct"} label={t.bpmDirect} onChange={() => patchTunables({ bpmMode: "direct" })} />
-          <Toggle checked={tunables.foldBpm} onChange={(foldBpm) => patchTunables({ foldBpm })} label={t.foldBpm} />
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <h2 className="mb-3 text-sm font-medium text-muted">{t.sectionBpm}</h2>
+          <div className="grid gap-3 sm:grid-cols-3">
             <label>
-              <span className="mb-1 block text-sm text-muted">{t.floor}</span>
-              <Field
-                inputMode="numeric"
-                value={String(tunables.bpmFloor)}
-                onChange={(event) => patchTunables({ bpmFloor: Number(event.target.value) })}
-              />
+              <span className="mb-1 block text-xs text-muted">Mode</span>
+              <SelectField value={tunables.bpmMode} onChange={(e) => patchTunables({ bpmMode: e.target.value as Tunables["bpmMode"] })}>
+                <option value="auto">{t.bpmAuto}</option>
+                <option value="period">{t.bpmPeriod}</option>
+                <option value="direct">{t.bpmDirect}</option>
+              </SelectField>
             </label>
             <label>
-              <span className="mb-1 block text-sm text-muted">{t.ceil}</span>
-              <Field
-                inputMode="numeric"
-                value={String(tunables.bpmCeil)}
-                onChange={(event) => patchTunables({ bpmCeil: Number(event.target.value) })}
-              />
+              <span className="mb-1 block text-xs text-muted">{t.floor}</span>
+              <Field inputMode="numeric" value={String(tunables.bpmFloor)} onChange={(e) => patchTunables({ bpmFloor: Number(e.target.value) })} />
             </label>
+            <label>
+              <span className="mb-1 block text-xs text-muted">{t.ceil}</span>
+              <Field inputMode="numeric" value={String(tunables.bpmCeil)} onChange={(e) => patchTunables({ bpmCeil: Number(e.target.value) })} />
+            </label>
+          </div>
+          <div className="mt-2">
+            <Toggle checked={tunables.foldBpm} onChange={(foldBpm) => patchTunables({ foldBpm })} label={t.foldBpm} />
           </div>
         </Panel>
 
         <Panel>
-          <h2 className="text-sm font-medium text-muted">{t.sectionMatch}</h2>
-          <Choice name="match" checked={tunables.matchMode === "artist-title"} label={t.matchPair} onChange={() => patchTunables({ matchMode: "artist-title" })} />
-          <Choice name="match" checked={tunables.matchMode === "title"} label={t.matchTitle} onChange={() => patchTunables({ matchMode: "title" })} />
-          <Choice name="match" checked={tunables.matchMode === "fuzzy"} label={t.matchFuzzy} onChange={() => patchTunables({ matchMode: "fuzzy" })} />
+          <h2 className="mb-3 text-sm font-medium text-muted">{t.sectionMatch}</h2>
+          <SelectField value={tunables.matchMode} onChange={(e) => patchTunables({ matchMode: e.target.value as Tunables["matchMode"] })}>
+            <option value="artist-title">{t.matchPair}</option>
+            <option value="title">{t.matchTitle}</option>
+            <option value="fuzzy">{t.matchFuzzy}</option>
+          </SelectField>
         </Panel>
 
         <Panel>
-          <h2 className="text-sm font-medium text-muted">{t.sectionWheel}</h2>
-          <label className="mt-3 block">
-            <span className="mb-1 block text-sm text-muted">{t.minPlays}</span>
-            <Field
-              inputMode="numeric"
-              value={String(tunables.wheelMinPlays)}
-              onChange={(event) => patchTunables({ wheelMinPlays: Number(event.target.value) })}
-            />
-          </label>
-          <Toggle checked={tunables.wheelRequireKey} onChange={(wheelRequireKey) => patchTunables({ wheelRequireKey })} label={t.requireKey} />
-          <label className="mt-3 block">
-            <span className="mb-1 block text-sm text-muted">{t.pageSize}</span>
-            <select
-              className="h-11 w-full rounded-sm border border-line bg-subtle px-3 text-sm"
-              value={tunables.pageSize}
-              onChange={(event) => patchTunables({ pageSize: Number(event.target.value) as Tunables["pageSize"] })}
-            >
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-          </label>
+          <h2 className="mb-3 text-sm font-medium text-muted">{t.sectionWheel}</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label>
+              <span className="mb-1 block text-xs text-muted">{t.minPlays}</span>
+              <Field inputMode="numeric" value={String(tunables.wheelMinPlays)} onChange={(e) => patchTunables({ wheelMinPlays: Number(e.target.value) })} />
+            </label>
+            <label>
+              <span className="mb-1 block text-xs text-muted">{t.pageSize}</span>
+              <SelectField value={String(tunables.pageSize)} onChange={(e) => patchTunables({ pageSize: Number(e.target.value) as Tunables["pageSize"] })}>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </SelectField>
+            </label>
+          </div>
+          <div className="mt-2">
+            <Toggle checked={tunables.wheelRequireKey} onChange={(wheelRequireKey) => patchTunables({ wheelRequireKey })} label={t.requireKey} />
+          </div>
         </Panel>
 
         <Panel>
-          <h2 className="text-sm font-medium text-muted">{t.sectionDash}</h2>
+          <h2 className="mb-2 text-sm font-medium text-muted">{t.sectionDash}</h2>
           {widgetKeys.map((item) => (
             <Toggle key={item.key} checked={widgets[item.key]} onChange={() => toggleWidget(item.key)} label={item.label} />
           ))}
         </Panel>
 
         <Panel>
-          <h2 className="text-sm font-medium text-muted">{t.sectionColumns}</h2>
-          {columnKeys.map((item) => (
-            <Toggle key={item.key} checked={columns[item.key]} onChange={() => toggleColumn(item.key)} label={item.label} />
-          ))}
+          <h2 className="mb-2 text-sm font-medium text-muted">{t.sectionColumns}</h2>
+          <div className="grid grid-cols-2 gap-1 text-xs sm:grid-cols-3">
+            {columnKeys.map((item) => (
+              <Toggle key={item.key} checked={columns[item.key]} onChange={() => toggleColumn(item.key)} label={item.label} />
+            ))}
+          </div>
         </Panel>
 
         <Panel>
-          <h2 className="text-sm font-medium text-muted">{t.sectionGenre}</h2>
-          <p className="mt-2 text-sm text-muted">{t.genreHelp}</p>
+          <h2 className="mb-2 text-sm font-medium text-muted">{t.sectionGenre}</h2>
           <textarea
-            className="mt-3 min-h-36 w-full rounded-sm border border-line bg-subtle p-3 font-mono text-sm"
+            className="min-h-28 w-full rounded-md border border-white/15 bg-subtle p-2 font-mono text-xs"
             value={tunables.genreMap}
             onChange={(event) => patchTunables({ genreMap: event.target.value })}
           />
-          <p className="mt-3 text-sm text-muted">{t.genrePreview}</p>
-          {collapsed.length === 0 ? <p className="mt-2 text-sm text-faint">{t.genreNone}</p> : null}
-          <ul className="mt-2 space-y-1 text-sm">
-            {collapsed.map(([label, count]) => (
-              <li key={label}>
-                {label} · {count}
-              </li>
-            ))}
-          </ul>
+          {collapsed.length > 0 ? (
+            <ul className="mt-2 space-y-0.5 text-xs text-muted">
+              {collapsed.map(([label, count]) => (
+                <li key={label}>
+                  {label} · {count}
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </Panel>
 
         <Panel>
-          <h2 className="text-sm font-medium text-muted">{t.sectionData}</h2>
-          <p className="mt-2 text-sm text-muted">{t.resetHelp}</p>
-          <p className="mt-2 text-sm text-muted">{t.writeBack}</p>
+          <h2 className="mb-2 text-sm font-medium text-muted">{t.sectionData}</h2>
           {origin === "user" ? (
-            <p className="mt-2 text-sm">
+            <p className="mb-2 text-xs text-muted">
               {libraryFile || "—"} · {historyFile || "—"}
             </p>
           ) : null}
-          <div className="mt-4">
-            <Button
-              variant="primary"
-              onClick={() => {
-                clearForReload();
-                setNote(t.resetReload);
-              }}
-            >
-              {t.resetReload}
-            </Button>
-          </div>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => {
+              clearForReload();
+              setNote(t.resetReload);
+            }}
+          >
+            {t.resetReload}
+          </Button>
         </Panel>
       </div>
     </div>
-  );
-}
-
-function Choice({
-  name,
-  checked,
-  label,
-  onChange,
-}: {
-  name: string;
-  checked: boolean;
-  label: string;
-  onChange: () => void;
-}) {
-  return (
-    <label className="flex min-h-11 items-center gap-3 text-sm">
-      <input type="radio" name={name} checked={checked} onChange={onChange} />
-      <span>{label}</span>
-    </label>
   );
 }
