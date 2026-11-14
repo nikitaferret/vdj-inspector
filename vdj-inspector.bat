@@ -2,7 +2,7 @@
 setlocal EnableExtensions
 cd /d "%~dp0"
 set "ROOT=%~dp0"
-if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
+if "%ROOT:~-1%"=="\\" set "ROOT=%ROOT:~0,-1%"
 set "URL=http://127.0.0.1:8080/"
 set "LOG=%ROOT%\vdj-inspector.log"
 title VDJ Inspector
@@ -15,28 +15,31 @@ call :log Checking components.
 call :ensure_node
 if errorlevel 1 goto :fail
 
-set "VITE_OK=0"
-if exist "%ROOT%\node_modules\vite\package.json" if exist "%ROOT%\node_modules\vite\dist\node\cli.js" set "VITE_OK=1"
-
-if "%VITE_OK%"=="1" (
-  echo Program files: ok
-  call :log Program files: ok
-) else (
-  echo Program files: missing or incomplete. Reinstalling...
-  call :log Program files missing or broken. Running clean npm install.
-  if exist "%ROOT%\node_modules" rmdir /s /q "%ROOT%\node_modules"
-  call npm install
-  if errorlevel 1 goto :fail
-  if not exist "%ROOT%\node_modules\vite\dist\node\cli.js" (
-    call :log npm install finished, but vite CLI is still missing.
-    goto :fail
-  )
-  echo Program files: ready
+where npm >nul 2>&1
+if errorlevel 1 (
+  call :log npm was not found. Node.js installation may be incomplete.
+  echo npm was not found. Please send vdj-inspector.log.
+  goto :fail
 )
 
-echo.
-echo Components are ready. Starting.
-call :log Components are ready. Starting.
+if not exist "%ROOT%\node_modules\vite\bin\vite.js" (
+  echo Installing program components. This may take a few minutes...
+  call :log Vite is missing. Running npm install.
+  call npm install --no-audit --no-fund
+  if errorlevel 1 (
+    call :log npm install failed with errorlevel %ERRORLEVEL%.
+    goto :fail
+  )
+)
+
+if not exist "%ROOT%\node_modules\vite\bin\vite.js" (
+  call :log Vite is still missing after npm install.
+  echo Vite did not install. Check internet access and send vdj-inspector.log.
+  goto :fail
+)
+
+echo Program files: ready
+call :log Program files: ready.
 
 call :up
 if not errorlevel 1 (
@@ -44,6 +47,8 @@ if not errorlevel 1 (
   goto :open
 )
 
+echo Starting VDJ Inspector...
+call :log Starting VDJ Inspector.
 start "VDJ Inspector" /min "%ROOT%\vdj-inspector-serve.bat"
 for /L %%i in (1,1,120) do (
   call :up
@@ -79,17 +84,15 @@ echo %*>> "%LOG%"
 exit /b 0
 
 :ensure_node
-set "NEEDNODE=1"
 where node >nul 2>&1
-if errorlevel 1 goto :afterver
-set "NODEMAJOR=0"
-for /f "delims=." %%A in ('node -p "process.versions.node" 2^>nul') do set "NODEMAJOR=%%A"
-if %NODEMAJOR% GEQ 22 (
-  echo Node.js: ok
-  call :log Node.js: ok
-  exit /b 0
+if not errorlevel 1 (
+  for /f "delims=." %%A in ('node -p "process.versions.node" 2^>nul') do set "NODEMAJOR=%%A"
+  if defined NODEMAJOR if %NODEMAJOR% GEQ 22 (
+    echo Node.js: ok
+    call :log Node.js: ok
+    exit /b 0
+  )
 )
-:afterver
 if exist "%ROOT%\.node\node.exe" (
   set "PATH=%ROOT%\.node;%PATH%"
   echo Node.js: portable copy found
@@ -100,8 +103,12 @@ echo Node.js: missing. Downloading...
 call :download_node
 if errorlevel 1 exit /b 1
 set "PATH=%ROOT%\.node;%PATH%"
-where node >nul 2>&1
-exit /b
+"%ROOT%\.node\node.exe" --version >nul 2>&1
+if errorlevel 1 (
+  call :log Portable Node.js failed its version check.
+  exit /b 1
+)
+exit /b 0
 
 :download_node
 set "NODEVER=v22.22.0"
