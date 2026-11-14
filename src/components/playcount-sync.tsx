@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { Button, Panel } from "@/components/ui";
 import { listPlayCountBackups, restorePlayCountBackup, setVdjPlayCount, syncHistoryPlayCounts, type PlayCountSyncResult } from "@/lib/vdj/playcount-sync";
 import type { ViewTrack } from "@/lib/vdj/types";
+import { parseDatabaseXml } from "@/lib/vdj/parse";
+import { useLibrary } from "@/lib/store";
 
 type WritableDirectory = FileSystemDirectoryHandle & { requestPermission?: (descriptor: { mode: "readwrite" }) => Promise<PermissionState> };
 type PickerWindow = Window & {
@@ -38,6 +40,13 @@ export function PlayCountSync({ tracks }: { tracks: ViewTrack[] }) {
     }
   }
 
+  async function refreshFromDatabase(): Promise<void> {
+    if (!folder) return;
+    const handle = await folder.getFileHandle("database.xml");
+    const tracks = parseDatabaseXml(await (await handle.getFile()).text());
+    useLibrary.getState().replaceTracks(tracks);
+  }
+
   async function withWritePermission(): Promise<void> {
     if (!folder) throw new Error("Сначала выберите папку VirtualDJ.");
     const permission = await folder.requestPermission?.({ mode: "readwrite" });
@@ -53,6 +62,10 @@ export function PlayCountSync({ tracks }: { tracks: ViewTrack[] }) {
     try {
       await withWritePermission();
       const summary = await syncHistoryPlayCounts(folder, tracks);
+      if (summary.changed > 0) await refreshFromDatabase();
+      const saved = await listPlayCountBackups(folder);
+      setBackups(saved);
+      setSelectedBackup(saved[0] ?? "");
       setResult(summary);
       setMessage(summary.changed > 0 ? "Счётчики записаны и проверены." : "Изменений не требуется.");
     } catch (error) {
@@ -70,6 +83,7 @@ export function PlayCountSync({ tracks }: { tracks: ViewTrack[] }) {
     try {
       await withWritePermission();
       const safetyCopy = await restorePlayCountBackup(folder, selectedBackup);
+      await refreshFromDatabase();
       setMessage("База восстановлена и проверена. Предыдущая версия сохранена: " + safetyCopy);
       const saved = await listPlayCountBackups(folder);
       setBackups(saved);
@@ -94,6 +108,10 @@ export function PlayCountSync({ tracks }: { tracks: ViewTrack[] }) {
     try {
       await withWritePermission();
       const backup = await setVdjPlayCount(folder, selectedTrack.filePath, count);
+      await refreshFromDatabase();
+      const saved = await listPlayCountBackups(folder);
+      setBackups(saved);
+      setSelectedBackup(saved[0] ?? "");
       setMessage("VDJ-счётчик записан. Резервная копия: " + backup);
       setManualCount("");
     } catch (error) {
