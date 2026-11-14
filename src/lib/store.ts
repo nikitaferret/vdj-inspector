@@ -132,6 +132,7 @@ type LibraryState = {
   importedAt: string | null;
   importNonce: number;
   hydrate: (snapshot: Snapshot) => void;
+  replaceTracks: (tracks: RawTrack[]) => void;
   commit: (next: {
     tracks: RawTrack[];
     sessions: RawSession[];
@@ -165,6 +166,13 @@ export const useLibrary = create<LibraryState>((set, get) => ({
       historyFile: snapshot.historyFile,
       importedAt: snapshot.importedAt,
     });
+  },
+  replaceTracks: (tracks) => {
+    const state = get();
+    const importedAt = new Date().toISOString();
+    const next = { tracks, sessions: state.sessions, plays: state.plays, libraryFile: state.libraryFile, historyFile: state.historyFile };
+    set({ tracks, dirty: true, importedAt });
+    void saveSnapshot({ v: 1, ...next, importedAt }).catch(() => undefined);
   },
   commit: (next) => {
     const importedAt = new Date().toISOString();
