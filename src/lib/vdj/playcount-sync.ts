@@ -29,7 +29,7 @@ async function writeText(handle: FileSystemFileHandle, value: string): Promise<v
 }
 
 function backupFileName(): string {
-  return "database.xml.backup-" + new Date().toISOString().replace(/[:.]/g, "-");
+  return "database.xml.backup-" + new Date().toISOString().replace(/[:.]/g, "-") + "-" + Math.random().toString(36).slice(2, 8);
 }
 
 async function createVerifiedBackup(root: FileSystemDirectoryHandle, original: string): Promise<string> {
@@ -134,4 +134,31 @@ export async function setVdjPlayCount(
   const backupName = await createVerifiedBackup(root, original);
   await writeAndVerify(databaseHandle, original, next);
   return backupName;
+}
+
+
+type DirectoryWithEntries = FileSystemDirectoryHandle & {
+  entries(): AsyncIterable<[string, FileSystemHandle]>;
+};
+
+export async function listPlayCountBackups(root: FileSystemDirectoryHandle): Promise<string[]> {
+  const folder = root as DirectoryWithEntries;
+  if (!folder.entries) return [];
+  const names: string[] = [];
+  for await (const [name, handle] of folder.entries()) {
+    if (handle.kind === "file" && /^database\.xml\.backup-/.test(name)) names.push(name);
+  }
+  return names.sort().reverse();
+}
+
+export async function restorePlayCountBackup(root: FileSystemDirectoryHandle, backupName: string): Promise<string> {
+  if (!/^database\.xml\.backup-[\wT.:-]+$/.test(backupName)) throw new Error("Недопустимое имя резервной копии.");
+  const databaseHandle = await root.getFileHandle("database.xml");
+  const backupHandle = await root.getFileHandle(backupName);
+  const original = await (await databaseHandle.getFile()).text();
+  const backup = await (await backupHandle.getFile()).text();
+  if (!/<Song\b/i.test(backup)) throw new Error("Файл резервной копии не похож на database.xml.");
+  const safetyBackup = await createVerifiedBackup(root, original);
+  await writeAndVerify(databaseHandle, original, backup);
+  return safetyBackup;
 }
