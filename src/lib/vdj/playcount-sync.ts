@@ -57,6 +57,7 @@ export async function syncHistoryPlayCounts(
 ): Promise<PlayCountSyncResult> {
   const databaseHandle = await root.getFileHandle("database.xml");
   const original = await (await databaseHandle.getFile()).text();
+  if (!/<VirtualDJ_Database\b/i.test(original) || !/<Song\b/i.test(original)) throw new Error("Выбранный database.xml не прошёл проверку формата.");
   const counts = new Map<string, number>();
   const ambiguous = new Set<string>();
 
@@ -118,6 +119,7 @@ export async function setVdjPlayCount(
   if (!Number.isSafeInteger(count) || count < 0) throw new Error("Счётчик должен быть целым неотрицательным числом.");
   const databaseHandle = await root.getFileHandle("database.xml");
   const original = await (await databaseHandle.getFile()).text();
+  if (!/<VirtualDJ_Database\b/i.test(original) || !/<Song\b/i.test(original)) throw new Error("Выбранный database.xml не прошёл проверку формата.");
   const wanted = pathKey(filePath);
   let matches = 0;
   let changed = false;
@@ -135,6 +137,7 @@ export async function setVdjPlayCount(
     return whole.replace(infos[0], infos[0].replace(infos[1], attrsNext));
   });
   if (matches !== 1) throw new Error(matches === 0 ? "Трек не найден в database.xml." : "Путь трека неоднозначен. Изменение отменено.");
+  parseDatabaseXml(next);
   if (!changed) throw new Error("Не удалось подготовить изменение.");
   const backupName = await createVerifiedBackup(root, original);
   await writeAndVerify(databaseHandle, original, next);
@@ -162,7 +165,8 @@ export async function restorePlayCountBackup(root: FileSystemDirectoryHandle, ba
   const backupHandle = await root.getFileHandle(backupName);
   const original = await (await databaseHandle.getFile()).text();
   const backup = await (await backupHandle.getFile()).text();
-  if (!/<Song\b/i.test(backup)) throw new Error("Файл резервной копии не похож на database.xml.");
+  if (!/<VirtualDJ_Database\b/i.test(backup) || !/<Song\b/i.test(backup)) throw new Error("Файл резервной копии не похож на database.xml.");
+  parseDatabaseXml(backup);
   const safetyBackup = await createVerifiedBackup(root, original);
   await writeAndVerify(databaseHandle, original, backup);
   return safetyBackup;
