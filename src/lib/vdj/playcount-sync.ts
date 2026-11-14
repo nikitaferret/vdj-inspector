@@ -1,4 +1,5 @@
 import type { RawTrack } from "@/lib/vdj/types";
+import { parseDatabaseXml } from "@/lib/vdj/parse";
 
 export type PlayCountSyncResult = {
   updated: number;
@@ -69,7 +70,7 @@ export async function syncHistoryPlayCounts(
 
   let updated = 0;
   let changed = 0;
-  let skipped = 0;
+  let skipped = ambiguous.size;
   const seen = new Set<string>();
   const next = original.replace(/<Song\b([^>]*)>([\s\S]*?)<\/Song>/gi, (whole, attrs: string, body: string) => {
     const pathMatch = attrs.match(/\bFilePath\s*=\s*"([^"]*)"/i);
@@ -99,6 +100,10 @@ export async function syncHistoryPlayCounts(
 
   skipped += [...counts.keys()].filter((key) => !seen.has(key)).length;
   if (changed === 0) return { updated, changed, skipped, backupName: null };
+
+  // Validate the complete XML with the same parser used by the importer before touching the source file.
+  const verifiedTracks = parseDatabaseXml(next);
+  if (verifiedTracks.length === 0) throw new Error("Проверка XML не пройдена. База не изменена.");
 
   const backupName = await createVerifiedBackup(root, original);
   await writeAndVerify(databaseHandle, original, next);
