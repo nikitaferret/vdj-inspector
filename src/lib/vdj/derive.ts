@@ -78,11 +78,6 @@ function pathKey(filePath: string): string {
   return filePath.replace(/\\/g, "/").replace(/\/+/g, "/").trim().toLowerCase();
 }
 
-function baseName(filePath: string): string {
-  const key = pathKey(filePath);
-  return key.split("/").pop() ?? "";
-}
-
 function matchKey(artist: string, title: string, mode: Tunables["matchMode"]): string | null {
   const fuzzy = mode === "fuzzy";
   const titleKey = normalizeLabel(title, fuzzy);
@@ -144,24 +139,18 @@ export function derive(
 
   const lookup = new Map<string, string | null>();
   for (const track of baseTracks) {
-    const key = matchKey(track.artist, track.title, tunables.matchMode);
+    const key = matchKey(track.artist, track.title, "artist-title");
     if (!key) continue;
     if (lookup.has(key)) lookup.set(key, null);
     else lookup.set(key, track.id);
   }
 
   const byPath = new Map<string, string | null>();
-  const byBase = new Map<string, string | null>();
   for (const track of baseTracks) {
     const full = pathKey(track.filePath);
     if (full) {
       if (byPath.has(full)) byPath.set(full, null);
       else byPath.set(full, track.id);
-    }
-    const base = baseName(track.filePath);
-    if (base) {
-      if (byBase.has(base)) byBase.set(base, null);
-      else byBase.set(base, track.id);
     }
   }
 
@@ -173,16 +162,24 @@ export function derive(
   const plays: ViewPlay[] = [];
   for (const play of rawPlays) {
     const stamp = play.playedAt.slice(0, 16);
-    const duplicateKey = `${play.title.trim().toLowerCase()}|${stamp}`;
+    // Deduplicate overlapping History exports by track identity and minute.
+    // Title-only keys incorrectly collapse different tracks with the same title.
+    const identity = play.filePath
+      ? `path:${pathKey(play.filePath)}`
+      : `meta:${normalizeLabel(play.artist, false)}|${normalizeLabel(play.title, false)}`;
+    const duplicateKey = `${identity}|${stamp}`;
     if (seenPlay.has(duplicateKey)) continue;
     seenPlay.add(duplicateKey);
 
     let trackId: string | null = null;
     if (play.filePath) {
-      trackId = byPath.get(pathKey(play.filePath)) ?? byBase.get(baseName(play.filePath)) ?? null;
+      trackId = byPath.get(pathKey(play.filePath)) ?? null;
     }
     if (!trackId) {
-      const key = matchKey(play.artist, play.title, tunables.matchMode);
+      // Drive letters and folder roots can change between History exports.
+      // Use an exact artist + title pair as the safe fallback; never title-only
+      // or fuzzy-match a play into a different library track.
+      const key = matchKey(play.artist, play.title, "artist-title");
       trackId = key ? (lookup.get(key) ?? null) : null;
     }
     if (trackId) matched += 1;

@@ -7,6 +7,7 @@ import { normalizeLabel } from "@/lib/vdj/derive";
 import { useDerived, useSettings } from "@/lib/store";
 import { loadDfmCache, saveDfmCache } from "@/lib/vdj/idb";
 import { Panel } from "@/components/ui";
+import { PlayCountSync } from "@/components/playcount-sync";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 export const Route = createFileRoute("/")({
@@ -21,6 +22,7 @@ function OverviewPage() {
   return (
     <div className="flex h-[calc(100dvh-3rem-1.5rem)] flex-col overflow-hidden md:h-[calc(100dvh-3rem-2rem)]">
       <h1 className="mb-3 shrink-0 font-display text-2xl tracking-tight">{t.navOverview}</h1>
+      <PlayCountSync tracks={data.tracks} />
 
       <div className="grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat to="/library" label={t.kpiTracks} value={plural(locale, data.kpis.tracks, t.trackForms)} />

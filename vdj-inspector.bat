@@ -15,28 +15,27 @@ call :log Checking components.
 call :ensure_node
 if errorlevel 1 goto :fail
 
-set "VITE_OK=0"
-if exist "%ROOT%\node_modules\vite\package.json" if exist "%ROOT%\node_modules\vite\dist\node\cli.js" set "VITE_OK=1"
+echo Node.js: ready
+call :log Node.js: ready
 
-if "%VITE_OK%"=="1" (
-  echo Program files: ok
-  call :log Program files: ok
-) else (
-  echo Program files: missing or incomplete. Reinstalling...
-  call :log Program files missing or broken. Running clean npm install.
-  if exist "%ROOT%\node_modules" rmdir /s /q "%ROOT%\node_modules"
-  call npm install
-  if errorlevel 1 goto :fail
-  if not exist "%ROOT%\node_modules\vite\dist\node\cli.js" (
-    call :log npm install finished, but vite CLI is still missing.
+if not exist "%ROOT%\node_modules\vite\bin\vite.js" (
+  echo Installing program components. This may take several minutes...
+  call :log Vite is missing. Running npm install.
+  call npm install --no-audit --no-fund >> "%LOG%" 2>&1
+  if errorlevel 1 (
+    call :log npm install failed. See npm output above.
     goto :fail
   )
-  echo Program files: ready
 )
 
-echo.
-echo Components are ready. Starting.
-call :log Components are ready. Starting.
+if not exist "%ROOT%\node_modules\vite\bin\vite.js" (
+  call :log Vite is still missing after npm install.
+  echo Vite did not install. Check vdj-inspector.log.
+  goto :fail
+)
+
+echo Program files: ready
+call :log Program files: ready
 
 call :up
 if not errorlevel 1 (
@@ -44,6 +43,8 @@ if not errorlevel 1 (
   goto :open
 )
 
+echo Starting VDJ Inspector...
+call :log Starting VDJ Inspector.
 start "VDJ Inspector" /min "%ROOT%\vdj-inspector-serve.bat"
 for /L %%i in (1,1,120) do (
   call :up
@@ -71,7 +72,7 @@ pause
 exit /b 1
 
 :up
-node -e "fetch('http://127.0.0.1:8080/').then(function(){process.exit(0)}).catch(function(){process.exit(1)})" >nul 2>&1
+"%NODE_EXE%" -e "fetch('http://127.0.0.1:8080/').then(function(){process.exit(0)}).catch(function(){process.exit(1)})" >nul 2>&1
 exit /b
 
 :log
@@ -79,29 +80,16 @@ echo %*>> "%LOG%"
 exit /b 0
 
 :ensure_node
-set "NEEDNODE=1"
-where node >nul 2>&1
-if errorlevel 1 goto :afterver
-set "NODEMAJOR=0"
-for /f "delims=." %%A in ('node -p "process.versions.node" 2^>nul') do set "NODEMAJOR=%%A"
-if %NODEMAJOR% GEQ 22 (
-  echo Node.js: ok
-  call :log Node.js: ok
-  exit /b 0
-)
-:afterver
+set "NODE_EXE="
 if exist "%ROOT%\.node\node.exe" (
-  set "PATH=%ROOT%\.node;%PATH%"
-  echo Node.js: portable copy found
-  call :log Node.js: portable copy found
-  exit /b 0
+  set "NODE_EXE=%ROOT%\.node\node.exe"
+  goto :check_node
 )
-echo Node.js: missing. Downloading...
-call :download_node
-if errorlevel 1 exit /b 1
-set "PATH=%ROOT%\.node;%PATH%"
-where node >nul 2>&1
-exit /b
+for /f "delims=" %%N in ('where node 2^>nul') do if not defined NODE_EXE set "NODE_EXE=%%N"
+if not defined NODE_EXE goto :download_node
+"%NODE_EXE%" -e "process.exit(Number(process.versions.node.split('.')[0]) >= 22 ? 0 : 1)" >nul 2>&1
+if errorlevel 1 goto :download_node
+exit /b 0
 
 :download_node
 set "NODEVER=v22.22.0"
@@ -111,14 +99,14 @@ set "NODEURL=https://nodejs.org/dist/%NODEVER%/node-%NODEVER%-%NODEARCH%.zip"
 call :log Downloading Node.js %NODEVER% for %NODEARCH%.
 if exist "%ROOT%\.node-unpack" rmdir /s /q "%ROOT%\.node-unpack"
 mkdir "%ROOT%\.node-unpack"
-curl.exe -L --fail --retry 3 -o "%ROOT%\node.zip" "%NODEURL%"
+curl.exe -L --fail --retry 3 -o "%ROOT%\node.zip" "%NODEURL%" >> "%LOG%" 2>&1
 if errorlevel 1 (
-  call :log Download failed: %NODEURL%
+  call :log Node.js download failed.
   exit /b 1
 )
-tar -xf "%ROOT%\node.zip" -C "%ROOT%\.node-unpack"
+tar -xf "%ROOT%\node.zip" -C "%ROOT%\.node-unpack" >> "%LOG%" 2>&1
 if errorlevel 1 (
-  call :log Could not unpack Node.js
+  call :log Could not unpack Node.js.
   exit /b 1
 )
 if exist "%ROOT%\.node" rmdir /s /q "%ROOT%\.node"
@@ -126,9 +114,17 @@ for /d %%D in ("%ROOT%\.node-unpack\node-*") do move "%%D" "%ROOT%\.node" >nul
 del /q "%ROOT%\node.zip" 2>nul
 rmdir /s /q "%ROOT%\.node-unpack" 2>nul
 if not exist "%ROOT%\.node\node.exe" (
-  call :log Node.js archive had no node.exe
+  call :log Node.js archive had no node.exe.
   exit /b 1
 )
-echo Node.js: ready
-call :log Node.js is ready.
+set "NODE_EXE=%ROOT%\.node\node.exe"
+exit /b 0
+
+:check_node
+"%NODE_EXE%" --version >nul 2>&1
+if errorlevel 1 (
+  call :log Portable Node.js failed its version check.
+  set "NODE_EXE="
+  goto :download_node
+)
 exit /b 0
