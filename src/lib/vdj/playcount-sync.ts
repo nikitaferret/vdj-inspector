@@ -98,7 +98,7 @@ export async function syncHistoryPlayCounts(
     const updatedAttrs = /\bPlayCount\s*=\s*"[^"]*"/i.test(infos[1])
       ? infos[1].replace(/\bPlayCount\s*=\s*"[^"]*"/i, "PlayCount=\"" + count + "\"")
       : infos[1] + " PlayCount=\"" + count + "\"";
-    const replacement = infos[0].replace(infos[1], updatedAttrs);
+    const replacement = "<Infos" + updatedAttrs + infos[2];
     updated += 1;
     if (currentNumber !== count) changed += 1;
     return whole.replace(infos[0], replacement);
@@ -139,7 +139,7 @@ export async function setVdjPlayCount(
       ? infos[1].replace(old, "PlayCount=\"" + count + "\"")
       : infos[1] + " PlayCount=\"" + count + "\"";
     changed = true;
-    return whole.replace(infos[0], infos[0].replace(infos[1], attrsNext));
+    return whole.replace(infos[0], "<Infos" + attrsNext + infos[2]);
   });
   if (matches !== 1) throw new Error(matches === 0 ? "Трек не найден в database.xml." : "Путь трека неоднозначен. Изменение отменено.");
   parseDatabaseXml(next);
