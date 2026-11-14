@@ -85,7 +85,7 @@ export function ImportDialog({
             />
           </label>
 
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 flex flex-wrap gap-2">
             <label className="relative inline-flex">
               <span className="pointer-events-none inline-flex h-9 items-center justify-center rounded-md border border-white/15 px-3 text-sm hover:bg-white/5">
                 {t.importFolder}
@@ -94,6 +94,25 @@ export function ImportDialog({
                 className="absolute inset-0 cursor-pointer opacity-0"
                 type="file"
                 multiple
+                ref={(node) => {
+                  node?.setAttribute("webkitdirectory", "");
+                }}
+                onChange={(event) => {
+                  const files = event.target.files ? [...event.target.files] : [];
+                  event.target.value = "";
+                  if (files.length) onFiles(files);
+                }}
+              />
+            </label>
+            <label className="relative inline-flex">
+              <span className="pointer-events-none inline-flex h-9 items-center justify-center rounded-md border border-white/15 px-3 text-sm hover:bg-white/5">
+                {t.importHistoryFolder}
+              </span>
+              <input
+                className="absolute inset-0 cursor-pointer opacity-0"
+                type="file"
+                multiple
+                accept=".m3u,.m3u8,.txt,audio/x-mpegurl,text/plain"
                 ref={(node) => {
                   node?.setAttribute("webkitdirectory", "");
                 }}
