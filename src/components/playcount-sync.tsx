@@ -3,12 +3,13 @@ import { Button, Panel } from "@/components/ui";
 import { syncHistoryPlayCounts, type PlayCountSyncResult } from "@/lib/vdj/playcount-sync";
 import type { ViewTrack } from "@/lib/vdj/types";
 
+type WritableDirectory = FileSystemDirectoryHandle & { requestPermission?: (descriptor: { mode: "readwrite" }) => Promise<PermissionState> };
 type PickerWindow = Window & {
   showDirectoryPicker?: (options: { id: string; mode: "readwrite" }) => Promise<FileSystemDirectoryHandle>;
 };
 
 export function PlayCountSync({ tracks }: { tracks: ViewTrack[] }) {
-  const [folder, setFolder] = useState<FileSystemDirectoryHandle | null>(null);
+  const [folder, setFolder] = useState<WritableDirectory | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [result, setResult] = useState<PlayCountSyncResult | null>(null);
@@ -20,7 +21,7 @@ export function PlayCountSync({ tracks }: { tracks: ViewTrack[] }) {
       return;
     }
     try {
-      const handle = await picker({ id: "vdj-inspector-write", mode: "readwrite" });
+      const handle = await picker({ id: "vdj-inspector-write", mode: "readwrite" }) as WritableDirectory;
       setFolder(handle);
       setMessage("");
       setResult(null);
