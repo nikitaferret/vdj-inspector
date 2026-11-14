@@ -171,7 +171,7 @@ export const useLibrary = create<LibraryState>((set, get) => ({
     const state = get();
     const importedAt = new Date().toISOString();
     const next = { tracks, sessions: state.sessions, plays: state.plays, libraryFile: state.libraryFile, historyFile: state.historyFile };
-    set({ tracks, dirty: true, importedAt });
+    set({ tracks, origin: "user", dirty: true, importedAt });
     void saveSnapshot({ v: 1, ...next, importedAt }).catch(() => undefined);
   },
   commit: (next) => {
