@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Button, Panel } from "@/components/ui";
-import { setVdjPlayCount, syncHistoryPlayCounts, type PlayCountSyncResult } from "@/lib/vdj/playcount-sync";
+import { listPlayCountBackups, restorePlayCountBackup, setVdjPlayCount, syncHistoryPlayCounts, type PlayCountSyncResult } from "@/lib/vdj/playcount-sync";
 import type { ViewTrack } from "@/lib/vdj/types";
 
 type WritableDirectory = FileSystemDirectoryHandle & { requestPermission?: (descriptor: { mode: "readwrite" }) => Promise<PermissionState> };
@@ -15,6 +15,8 @@ export function PlayCountSync({ tracks }: { tracks: ViewTrack[] }) {
   const [result, setResult] = useState<PlayCountSyncResult | null>(null);
   const [selectedId, setSelectedId] = useState("");
   const [manualCount, setManualCount] = useState("");
+  const [backups, setBackups] = useState<string[]>([]);
+  const [selectedBackup, setSelectedBackup] = useState("");
   const selectedTrack = useMemo(() => tracks.find((track) => track.id === selectedId) ?? null, [selectedId, tracks]);
 
   async function chooseFolder() {
@@ -26,6 +28,9 @@ export function PlayCountSync({ tracks }: { tracks: ViewTrack[] }) {
     try {
       const handle = await picker({ id: "vdj-inspector-write", mode: "readwrite" }) as WritableDirectory;
       setFolder(handle);
+      const saved = await listPlayCountBackups(handle);
+      setBackups(saved);
+      setSelectedBackup(saved[0] ?? "");
       setMessage("");
       setResult(null);
     } catch (error) {
@@ -52,6 +57,25 @@ export function PlayCountSync({ tracks }: { tracks: ViewTrack[] }) {
       setMessage(summary.changed > 0 ? "Счётчики записаны и проверены." : "Изменений не требуется.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Не удалось выполнить синхронизацию.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function restoreBackup() {
+    if (!folder || !selectedBackup) return;
+    if (!window.confirm("Восстановить database.xml из выбранной резервной копии? Текущая база также будет сохранена в отдельную резервную копию.")) return;
+    setBusy(true);
+    setMessage("");
+    try {
+      await withWritePermission();
+      const safetyCopy = await restorePlayCountBackup(folder, selectedBackup);
+      setMessage("База восстановлена и проверена. Предыдущая версия сохранена: " + safetyCopy);
+      const saved = await listPlayCountBackups(folder);
+      setBackups(saved);
+      setSelectedBackup(saved[0] ?? "");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Не удалось восстановить базу.");
     } finally {
       setBusy(false);
     }
@@ -127,6 +151,21 @@ export function PlayCountSync({ tracks }: { tracks: ViewTrack[] }) {
         />
         <Button size="sm" variant="outline" onClick={() => void saveManualCount()} disabled={!folder || !selectedTrack || busy || manualCount === ""}>
           Сохранить VDJ
+        </Button>
+      </div>
+      <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <select
+          aria-label="Резервная копия database.xml"
+          className="h-9 min-w-0 rounded-md border border-white/15 bg-subtle px-2 text-sm"
+          value={selectedBackup}
+          onChange={(event) => setSelectedBackup(event.target.value)}
+          disabled={!folder || busy || backups.length === 0}
+        >
+          <option value="">Нет резервных копий</option>
+          {backups.map((name) => <option key={name} value={name}>{name}</option>)}
+        </select>
+        <Button size="sm" variant="outline" onClick={() => void restoreBackup()} disabled={!folder || !selectedBackup || busy}>
+          Восстановить копию
         </Button>
       </div>
       {message ? <p className="mt-3 text-sm text-muted" role="status">{message}</p> : null}
