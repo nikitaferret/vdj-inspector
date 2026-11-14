@@ -131,7 +131,7 @@ export async function setVdjPlayCount(
   });
   if (matches !== 1) throw new Error(matches === 0 ? "Трек не найден в database.xml." : "Путь трека неоднозначен. Изменение отменено.");
   if (!changed) throw new Error("Не удалось подготовить изменение.");
-  await createVerifiedBackup(root, original);
+  const backupName = await createVerifiedBackup(root, original);
   await writeAndVerify(databaseHandle, original, next);
-  return backupFileName();
+  return backupName;
 }
