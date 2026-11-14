@@ -88,7 +88,7 @@ export async function syncHistoryPlayCounts(
     }
     seen.add(key);
     const count = counts.get(key)!;
-    const infos = body.match(/<Infos\b([^>]*?)(\s*\/?\?>)/i);
+    const infos = body.match(/<Infos\b([^>]*?)(\s*\/?>)/i);
     if (!infos) {
       skipped += 1;
       return whole;
@@ -132,7 +132,7 @@ export async function setVdjPlayCount(
     const pathMatch = attrs.match(/\bFilePath\s*=\s*"([^"]*)"/i);
     if (pathKey(pathMatch ? decodeXml(pathMatch[1]) : "") !== wanted) return whole;
     matches += 1;
-    const infos = body.match(/<Infos\b([^>]*?)(\s*\/?\?>)/i);
+    const infos = body.match(/<Infos\b([^>]*?)(\s*\/?>)/i);
     if (!infos) throw new Error("У записи трека отсутствует блок Infos.");
     const old = infos[1].match(/\bPlayCount\s*=\s*"[^"]*"/i)?.[0];
     const attrsNext = old
