@@ -50,8 +50,8 @@ export async function syncHistoryPlayCounts(
   let changed = 0;
   let skipped = 0;
   const seen = new Set<string>();
-  const next = original.replace(/<Song\\b([^>]*)>([\\s\\S]*?)<\\/Song>/gi, (whole, attrs: string, body: string) => {
-    const pathMatch = attrs.match(/\\bFilePath\\s*=\\s*"([^"]*)"/i);
+  const next = original.replace(/<Song\b([^>]*)>([\s\S]*?)<\/Song>/gi, (whole, attrs: string, body: string) => {
+    const pathMatch = attrs.match(/\bFilePath\s*=\s*"([^"]*)"/i);
     const filePath = pathMatch ? decodeXml(pathMatch[1]) : "";
     const key = pathKey(filePath);
     if (!key || !counts.has(key)) return whole;
@@ -61,15 +61,15 @@ export async function syncHistoryPlayCounts(
     }
     seen.add(key);
     const count = counts.get(key)!;
-    const infos = body.match(/<Infos\\b([^>]*)\\/?>/i);
+    const infos = body.match(/<Infos\b([^>]*)\/?>/i);
     if (!infos) {
       skipped += 1;
       return whole;
     }
-    const current = infos[1].match(/\\bPlayCount\\s*=\\s*"([^"]*)"/i)?.[1];
+    const current = infos[1].match(/\bPlayCount\s*=\s*"([^"]*)"/i)?.[1];
     const currentNumber = current == null ? null : Number(current);
-    const updatedAttrs = /\\bPlayCount\\s*=\\s*"[^"]*"/i.test(infos[1])
-      ? infos[1].replace(/\\bPlayCount\\s*=\\s*"[^"]*"/i, `PlayCount="${count}"`)
+    const updatedAttrs = /\bPlayCount\s*=\s*"[^"]*"/i.test(infos[1])
+      ? infos[1].replace(/\bPlayCount\s*=\s*"[^"]*"/i, `PlayCount="${count}"`)
       : `${infos[1]} PlayCount="${count}"`;
     const replacement = infos[0].replace(infos[1], updatedAttrs);
     updated += 1;
