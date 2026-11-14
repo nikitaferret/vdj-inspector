@@ -17,10 +17,6 @@ function decodeXml(value: string): string {
   return value.replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
 }
 
-function escapeXml(value: string): string {
-  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
 function writeText(handle: FileSystemFileHandle, value: string): Promise<void> {
   return handle.createWritable().then(async (writer) => {
     try {
@@ -44,7 +40,7 @@ export async function syncHistoryPlayCounts(
 
   for (const track of tracks) {
     const key = pathKey(track.filePath);
-    if (!key) continue;
+    if (!key || track.historyPlays <= 0) continue;
     if (counts.has(key)) ambiguous.add(key);
     else counts.set(key, Math.max(0, Math.round(track.historyPlays)));
   }
