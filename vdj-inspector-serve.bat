@@ -2,7 +2,7 @@
 setlocal EnableExtensions
 cd /d "%~dp0"
 set "ROOT=%~dp0"
-if "%ROOT:~-1%"=="\\" set "ROOT=%ROOT:~0,-1%"
+if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
 set "NODE="
 
 if exist "%ROOT%\.node\node.exe" set "NODE=%ROOT%\.node\node.exe"
@@ -14,7 +14,7 @@ if not defined NODE (
 )
 
 if not exist "%ROOT%\node_modules\vite\bin\vite.js" (
-  echo Vite executable was not found. Run vdj-inspector.bat again.>> "%ROOT%\vdj-inspector.log"
+  echo Vite executable was not found after dependency installation.>> "%ROOT%\vdj-inspector.log"
   exit /b 1
 )
 
