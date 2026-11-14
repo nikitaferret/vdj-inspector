@@ -173,7 +173,12 @@ export function derive(
   const plays: ViewPlay[] = [];
   for (const play of rawPlays) {
     const stamp = play.playedAt.slice(0, 16);
-    const duplicateKey = `${play.title.trim().toLowerCase()}|${stamp}`;
+    // Deduplicate overlapping History exports by track identity and minute.
+    // Title-only keys incorrectly collapse different tracks with the same title.
+    const identity = play.filePath
+      ? `path:${pathKey(play.filePath)}`
+      : `meta:${normalizeLabel(play.artist, false)}|${normalizeLabel(play.title, false)}`;
+    const duplicateKey = `${identity}|${stamp}`;
     if (seenPlay.has(duplicateKey)) continue;
     seenPlay.add(duplicateKey);
 
