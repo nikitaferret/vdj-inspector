@@ -3,12 +3,12 @@ setlocal EnableExtensions
 cd /d "%~dp0"
 set "ROOT=%~dp0"
 if "%ROOT:~-1%"=="\\" set "ROOT=%ROOT:~0,-1%"
-set "NODE=%ROOT%\.node\node.exe"
+set "NODE="
 
-if not exist "%NODE%" (
-  for /f "delims=" %%N in ('where node 2^>nul') do if not defined NODE set "NODE=%%N"
-)
-if not exist "%NODE%" (
+if exist "%ROOT%\.node\node.exe" set "NODE=%ROOT%\.node\node.exe"
+if not defined NODE for /f "delims=" %%N in ('where node 2^>nul') do if not defined NODE set "NODE=%%N"
+
+if not defined NODE (
   echo Node.js executable was not found.>> "%ROOT%\vdj-inspector.log"
   exit /b 1
 )
