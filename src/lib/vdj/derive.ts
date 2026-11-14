@@ -139,7 +139,7 @@ export function derive(
 
   const lookup = new Map<string, string | null>();
   for (const track of baseTracks) {
-    const key = matchKey(track.artist, track.title, tunables.matchMode);
+    const key = matchKey(track.artist, track.title, "artist-title");
     if (!key) continue;
     if (lookup.has(key)) lookup.set(key, null);
     else lookup.set(key, track.id);
