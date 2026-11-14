@@ -41,12 +41,17 @@ async function createVerifiedBackup(root: FileSystemDirectoryHandle, original: s
   return name;
 }
 
-async function writeAndVerify(handle: FileSystemFileHandle, original: string, next: string): Promise<void> {
+async function writeAndVerify(handle: FileSystemFileHandle, original: string, next: string, backupName: string): Promise<void> {
   try {
     await writeText(handle, next);
     if ((await (await handle.getFile()).text()) !== next) throw new Error("Не удалось проверить записанную database.xml");
   } catch (error) {
-    await writeText(handle, original).catch(() => undefined);
+    try {
+      await writeText(handle, original);
+      if ((await (await handle.getFile()).text()) !== original) throw new Error("Контрольное чтение после отката не совпало.");
+    } catch {
+      throw new Error("Запись и автоматический откат не удались. Не трогайте базу вручную; исходная копия сохранена: " + backupName);
+    }
     throw error;
   }
 }
@@ -107,7 +112,7 @@ export async function syncHistoryPlayCounts(
   if (verifiedTracks.length === 0) throw new Error("Проверка XML не пройдена. База не изменена.");
 
   const backupName = await createVerifiedBackup(root, original);
-  await writeAndVerify(databaseHandle, original, next);
+  await writeAndVerify(databaseHandle, original, next, backupName);
   return { updated, changed, skipped, backupName };
 }
 
@@ -140,7 +145,7 @@ export async function setVdjPlayCount(
   parseDatabaseXml(next);
   if (!changed) throw new Error("Не удалось подготовить изменение.");
   const backupName = await createVerifiedBackup(root, original);
-  await writeAndVerify(databaseHandle, original, next);
+  await writeAndVerify(databaseHandle, original, next, backupName);
   return backupName;
 }
 
@@ -168,6 +173,6 @@ export async function restorePlayCountBackup(root: FileSystemDirectoryHandle, ba
   if (!/<VirtualDJ_Database\b/i.test(backup) || !/<Song\b/i.test(backup)) throw new Error("Файл резервной копии не похож на database.xml.");
   parseDatabaseXml(backup);
   const safetyBackup = await createVerifiedBackup(root, original);
-  await writeAndVerify(databaseHandle, original, backup);
+  await writeAndVerify(databaseHandle, original, backup, safetyBackup);
   return safetyBackup;
 }
